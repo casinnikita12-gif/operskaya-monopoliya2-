@@ -1,0 +1,3067 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Оперская Монополия — Дело № 77/40-ОМ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --paper-bg: #efe6d5;
+            --paper-card: #faf5ea;
+            --paper-sheet: #fbf7ef;
+            --ink: #1e1b18;
+            --muted: #5c5346;
+            --border-ink: #3c3329;
+            --archive-red: #8e1c1c;
+            --archive-green: #1f5c39;
+            --archive-navy: #1d3f66;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--ink);
+            background-color: #2b241d;
+            background-image:
+                radial-gradient(circle at 18% 12%, rgba(214, 189, 143, 0.14), transparent 36%),
+                radial-gradient(circle at 82% 88%, rgba(142, 28, 28, 0.12), transparent 40%),
+                linear-gradient(180deg, #352c23 0%, #241e18 100%);
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .archive-sheet {
+            background: var(--paper-sheet);
+            border: 1.5px solid var(--border-ink);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(255, 252, 244, 0.7);
+        }
+
+        .archive-card {
+            background: var(--paper-card);
+            border: 1px solid #857765;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(30, 27, 24, 0.08);
+        }
+
+        .stamp-seal {
+            border: 2px solid var(--archive-red);
+            color: var(--archive-red);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transform: rotate(-2deg);
+            background: rgba(142, 28, 28, 0.06);
+        }
+
+        .board-wrap {
+            background: var(--paper-bg);
+            border: 2px solid var(--border-ink);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
+        }
+
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(11, minmax(0, 1fr));
+            grid-template-rows: repeat(11, minmax(0, 1fr));
+            gap: 3px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            min-height: 540px;
+            max-height: 760px;
+        }
+
+        .board-cell {
+            position: relative;
+            background: var(--paper-sheet);
+            border: 1px solid #6f6252;
+            border-radius: 5px;
+            padding: 2px 3px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            overflow: hidden;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .board-cell:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+            z-index: 4;
+        }
+
+        .board-cell.corner-cell {
+            background: #e8dcc5;
+            border-width: 1.5px;
+            border-color: var(--border-ink);
+        }
+
+        .board-cell.mortgaged-cell {
+            background: #e5dfd5;
+            opacity: 0.78;
+        }
+
+        .board-cell.sealed-cell {
+            box-shadow: inset 0 0 0 2px #b91c1c;
+        }
+
+        .cell-color-strip {
+            height: 6px;
+            width: 100%;
+            border-radius: 2px;
+            margin-bottom: 1px;
+            flex-shrink: 0;
+        }
+
+        .cell-title {
+            font-size: 9px;
+            line-height: 1.08;
+            font-weight: 700;
+            color: #1f1b16;
+            word-break: break-word;
+        }
+
+        .cell-price {
+            font-size: 8.5px;
+            line-height: 1;
+            font-weight: 700;
+            color: #4a4035;
+        }
+
+        .owner-badge {
+            position: absolute;
+            top: 8px;
+            right: 2px;
+            padding: 0 3px;
+            border-radius: 3px;
+            font-size: 7.5px;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.25;
+            max-width: 34px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .center-dossier-hub {
+            grid-column: 2 / 11;
+            grid-row: 2 / 11;
+            background:
+                radial-gradient(circle at 50% 35%, rgba(255, 250, 240, 0.92), rgba(235, 223, 199, 0.95));
+            border: 1.5px solid #5c5042;
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .dice-stage {
+            background: rgba(251, 247, 239, 0.9);
+            border: 1.5px solid #4e4336;
+            border-radius: 10px;
+            padding: 8px 12px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 4px 12px rgba(30, 27, 24, 0.12);
+        }
+
+        .die-cube {
+            width: 54px;
+            height: 54px;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #fffdf9, #efe4cf);
+            border: 2px solid #2b241d;
+            box-shadow: 0 4px 0 #4a3f33, 0 6px 12px rgba(0, 0, 0, 0.2);
+            padding: 6px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            align-items: center;
+            justify-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .die-cube.rolling {
+            transform: rotate(10deg) scale(1.06);
+        }
+
+        .pip-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #1e1b18;
+        }
+
+        .pip-dot.red-pip {
+            background: #a81c1c;
+            width: 9px;
+            height: 9px;
+        }
+
+        .token-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 3px;
+            border-radius: 999px;
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #ffffff;
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+        }
+
+        .baryga-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            height: 18px;
+            border-radius: 4px;
+            font-size: 8.5px;
+            font-weight: 800;
+            background: #991b1b;
+            color: #fef2f2;
+            border: 1px solid #fecaca;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+        }
+
+        .btn-archive {
+            border: 1.5px solid #2c241d;
+            border-radius: 7px;
+            font-weight: 700;
+            transition: transform 0.1s ease, filter 0.12s ease;
+            cursor: pointer;
+        }
+
+        .btn-archive:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(1.04);
+        }
+
+        .btn-archive:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-archive:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 1024px) {
+            .board-grid {
+                min-height: 400px;
+                max-height: 520px;
+            }
+            .cell-title {
+                font-size: 7.5px;
+            }
+            .die-cube {
+                width: 44px;
+                height: 44px;
+            }
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+    <!-- ==================== ЛОББИ / ШТАБ ДЕЛА № 77/40-ОМ ==================== -->
+    <div id="lobby-screen" class="max-w-6xl mx-auto archive-sheet p-4 sm:p-6">
+        <div class="flex flex-wrap items-start justify-between gap-4 border-b-2 border-[#3c3329] pb-4 mb-5">
+            <div>
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="stamp-seal text-xs">Архивное дело № 77/40-ОМ</span>
+                    <span class="mono text-xs px-2.5 py-0.5 rounded bg-[#e8dcc5] border border-[#5c5042] font-bold">ГУ МВД • ОМВД «БАРВИХА-СЕВЕРНОЕ»</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1e1b18]">Оперская Монополия</h1>
+                <p class="text-xs sm:text-sm text-[#5c5346] mt-1">
+                    Тактическая экономическая игра про оперативников, службы, сауны, теневой бизнес, Местного Барыгу и проверки УСБ.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="openRulesModal()" class="btn-archive px-3.5 py-2 text-xs sm:text-sm bg-[#e8dcc5] text-[#1e1b18]">
+                    📜 Регламент и правила
+                </button>
+                <button type="button" onclick="startGameFromLobby()" class="btn-archive px-4 py-2 text-xs sm:text-sm bg-[#8e1c1c] text-white">
+                    ▶ Начать операцию
+                </button>
+            </div>
+        </div>
+
+        <!-- Режим игры и сетевая комната -->
+        <div class="archive-card p-3.5 mb-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                    <button type="button" id="mode-btn-hotseat" onclick="setLobbyMode('hotseat')" class="btn-archive px-3 py-1.5 text-xs bg-[#1e1b18] text-white">
+                        🖥 За одним экраном (Hot-Seat)
+                    </button>
+                    <button type="button" id="mode-btn-network" onclick="setLobbyMode('network')" class="btn-archive px-3 py-1.5 text-xs bg-[#e8dcc5] text-[#1e1b18]">
+                        🌐 По сети (комната)
+                    </button>
+                </div>
+                <span class="mono text-[11px] text-[#5c5346]">Участников: <strong id="lobby-player-count">2</strong> / 7</span>
+            </div>
+
+            <div id="network-room-panel" class="hidden pt-3 border-t border-[#c7b89e] space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                    <input id="net-callsign-input" type="text" placeholder="Ваш позывной (например, Опер-Сокол)" class="px-3 py-2 text-xs sm:text-sm rounded border border-[#5c5042] bg-white text-[#1e1b18]" />
+                    <input id="net-room-code-input" type="text" placeholder="Код комнаты (например, OM-7740)" class="mono px-3 py-2 text-xs sm:text-sm rounded border border-[#5c5042] bg-white text-[#1e1b18] uppercase" />
+                    <button type="button" onclick="createNetworkRoom()" class="btn-archive px-3 py-2 text-xs sm:text-sm bg-[#1f5c39] text-white">
+                        ＋ Создать комнату
+                    </button>
+                    <button type="button" onclick="joinNetworkRoom()" class="btn-archive px-3 py-2 text-xs sm:text-sm bg-[#1d3f66] text-white">
+                        ↪ Войти в комнату
+                    </button>
+                </div>
+                <div id="net-invite-box" class="hidden flex flex-wrap items-center justify-between gap-2 p-2.5 rounded bg-[#f3ead8] border border-[#857765]">
+                    <div class="text-xs">
+                        <span class="font-bold">Код:</span> <span id="net-room-code-display" class="mono font-bold text-[#8e1c1c]"></span>
+                        <span class="mx-2 text-[#857765]">|</span>
+                        <span class="font-bold">Ссылка:</span> <span id="net-invite-link-display" class="mono text-[11px] break-all"></span>
+                    </div>
+                    <button type="button" onclick="copyInviteLink()" class="btn-archive px-3 py-1 text-xs bg-[#e8dcc5] text-[#1e1b18]">
+                        📋 Копировать приглашение
+                    </button>
+                </div>
+                <div id="net-room-info" class="text-xs text-[#4a4035]">Создайте комнату или введите код/ссылку приглашения, чтобы подключить участников.</div>
+                <div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-[#5c5346] mb-1.5">Участники комнаты в сети:</div>
+                    <div id="net-room-members-list" class="flex flex-wrap gap-2">
+                        <span class="text-xs text-[#5c5346]">Пока нет подключённых участников.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Слоты оперативников -->
+        <div class="flex items-center justify-between mb-2.5">
+            <h2 class="text-sm font-extrabold uppercase tracking-wider text-[#3c3329]">Состав оперативной группы</h2>
+            <button type="button" id="add-slot-btn" onclick="addHotseatSlot()" class="btn-archive px-3 py-1 text-xs bg-[#e8dcc5] text-[#1e1b18]">
+                ＋ Добавить слот
+            </button>
+        </div>
+        <div id="lobby-slots-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-5"></div>
+
+        <!-- Справочник ролей в лобби -->
+        <div class="archive-card p-3.5">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-[#3c3329] mb-2">Досье оперативников дела № 77/40-ОМ</h3>
+            <div id="lobby-roles-reference" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5"></div>
+        </div>
+    </div>
+
+    <!-- ==================== ИГРОВОЙ СТОЛ ==================== -->
+    <div id="game-screen" class="hidden max-w-[1520px] mx-auto space-y-2.5">
+        <!-- Верхняя плашка стола -->
+        <header class="archive-sheet px-3 py-2 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="stamp-seal text-[11px]">Дело № 77/40-ОМ</span>
+                <span id="round-indicator" class="mono text-xs font-bold px-2.5 py-0.5 rounded bg-[#e8dcc5] border border-[#5c5042]">Круг 1</span>
+                <span id="baryga-status-badge" class="mono text-xs font-bold px-2.5 py-0.5 rounded bg-red-100 text-red-900 border border-red-700">Барыга: кл. #12</span>
+                <span id="game-net-badge" class="hidden mono text-xs font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-900 border border-emerald-700">🌐 Комната</span>
+                <div id="game-room-roster-strip" class="hidden flex flex-wrap items-center gap-1.5 text-[11px]"></div>
+                <select id="game-seat-switcher" onchange="switchLocalNetworkSeat(this.value)" title="Выбор вашего слота в комнате" class="hidden text-[11px] font-bold px-2 py-0.5 rounded border border-[#5c5042] bg-[#fbf7ef] text-[#1e1b18]"></select>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5">
+                <button type="button" onclick="openRulesModal()" class="btn-archive px-2.5 py-1 text-xs bg-[#e8dcc5] text-[#1e1b18]">📜 Правила</button>
+                <button type="button" onclick="returnToLobby()" class="btn-archive px-2.5 py-1 text-xs bg-[#e8dcc5] text-[#1e1b18]">👥 Штаб / Комната</button>
+                <button type="button" onclick="startGameFromLobby()" class="btn-archive px-2.5 py-1 text-xs bg-[#8e1c1c] text-white">↻ Новая партия</button>
+            </div>
+        </header>
+
+        <!-- Трёхколоночный стол: Лево — оперативники и журнал; Центр — поле и кубики; Право — активы, сауны, тени, жетоны -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-start">
+            <!-- Левая колонка -->
+            <aside class="lg:col-span-3 space-y-2.5">
+                <div class="archive-sheet p-2.5">
+                    <div class="text-xs font-extrabold uppercase tracking-wider text-[#3c3329] mb-2">Оперативники в деле</div>
+                    <div id="players-panel" class="space-y-2"></div>
+                </div>
+                <div class="archive-sheet p-2.5">
+                    <div class="text-xs font-extrabold uppercase tracking-wider text-[#3c3329] mb-1.5">Оперативный журнал</div>
+                    <div id="game-log" class="space-y-1 max-h-60 overflow-y-auto text-[11.5px] leading-snug pr-1"></div>
+                </div>
+            </aside>
+
+            <!-- Центральная колонка: поле 11x11 с кубиками в центре -->
+            <main class="lg:col-span-6 board-wrap">
+                <div id="board-grid" class="board-grid"></div>
+            </main>
+
+            <!-- Правая колонка: управление активом, сауны, теневой бизнес, жетоны, связки -->
+            <aside class="lg:col-span-3 space-y-2.5">
+                <div id="right-assets-panel" class="archive-sheet p-2.5 space-y-2.5"></div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- ==================== МОДАЛЬНОЕ ОКНО КАРТОЧКИ КЛЕТКИ ==================== -->
+    <div id="cell-modal" onclick="if(event.target===this)closeCellModal()" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3">
+        <div class="archive-sheet max-w-md w-full p-4 space-y-3">
+            <div class="flex items-start justify-between gap-2 border-b border-[#857765] pb-2">
+                <div>
+                    <div id="cell-modal-meta" class="mono text-[11px] font-bold text-[#5c5346]"></div>
+                    <h3 id="cell-modal-title" class="text-lg font-extrabold text-[#1e1b18]"></h3>
+                </div>
+                <button type="button" onclick="closeCellModal()" class="btn-archive px-2.5 py-1 text-xs bg-[#e8dcc5]">✕</button>
+            </div>
+            <div id="cell-modal-body" class="text-xs space-y-2 text-[#2b241d]"></div>
+            <div id="cell-modal-actions" class="flex flex-wrap justify-end gap-2 pt-2 border-t border-[#d6c9b2]"></div>
+        </div>
+    </div>
+
+    <!-- ==================== МОДАЛЬНОЕ ОКНО РЕГЛАМЕНТА ==================== -->
+    <div id="rules-modal" onclick="if(event.target===this)closeRulesModal()" class="hidden fixed inset-0 z-50 bg-black/65 flex items-center justify-center p-3">
+        <div class="archive-sheet max-w-3xl w-full max-h-[86vh] flex flex-col p-4 sm:p-5">
+            <div class="flex items-center justify-between gap-2 border-b-2 border-[#3c3329] pb-2.5 mb-3">
+                <div>
+                    <span class="stamp-seal text-[10px]">Регламент дела № 77/40-ОМ</span>
+                    <h3 class="text-lg font-extrabold mt-1">Основные правила «Оперской Монополии»</h3>
+                </div>
+                <button type="button" onclick="closeRulesModal()" class="btn-archive px-3 py-1 text-xs bg-[#e8dcc5]">Закрыть</button>
+            </div>
+            <div class="overflow-y-auto space-y-3 text-xs sm:text-[13px] leading-relaxed pr-1">
+                <section class="archive-card p-3">
+                    <h4 class="font-extrabold text-sm mb-1">1. Движение, старт и дубли</h4>
+                    <p>Стартовый капитал — <strong>1 500 тыс. ₽</strong>, проход «Старта» (№ 0) приносит <strong>+200 тыс. ₽</strong>. При дубле (1-й и 2-й подряд) оперативник остаётся на месте, вперёд на сумму кубиков шагает <strong>Местный Барыга</strong>, применяются бонусы дубля и сохраняется переброс. На <strong>3-м дубле подряд</strong> игрок сразу направляется в <strong>УСБ</strong> (клетка № 10). Для Гриши дубль <strong>1-1</strong> завершает бросок вызовом «на ковёр» с пропуском следующего хода.</p>
+                </section>
+                <section class="archive-card p-3">
+                    <h4 class="font-extrabold text-sm mb-1">2. Точки, звёзды крышевания и Местный Барыга</h4>
+                    <p>Свободную точку можно выкупить при остановке на ней или отправить на аукцион (Ника перебивает минимальную ставку на +50 тыс. ₽). Каждая звезда (<strong>1★–4★★★★</strong>) повышает ренту. Если на клетке стоит <strong>Барыга</strong>, доход точки/сауны/тени делится на 3, а при сделке с ним доступен выбор: <em>законно по регламенту</em>, <em>наезд и выжим</em> (опечатывает точку до конца круга) или <em>подброс</em>. Пройдя мимо Барыги в свой ход, можно взять ориентировку за <strong>30 тыс. ₽</strong>.</p>
+                </section>
+                <section class="archive-card p-3">
+                    <h4 class="font-extrabold text-sm mb-1">3. Сауны, Служебные отделы и Спецслужбы</h4>
+                    <p>Обменивая Служебный отдел, можно открыть <strong>1–3 сауны</strong> (до 4-й у Кристины) с бонусами на «Дне получки» (+40 / +90 / +160 тыс. ₽), добором за 50 тыс. ₽ при выполнении условий и обратным выкупом отдела за 3 сауны + 50 тыс. ₽. <strong>Спецслужбы</strong> дают доступ к зачистке «Крысы», сдвигу Барыги, переману «Гастарбайтеров» и удвоению «Кафешек» (+100 тыс. ₽/круг при обеих службах).</p>
+                </section>
+                <section class="archive-card p-3">
+                    <h4 class="font-extrabold text-sm mb-1">4. Теневой бизнес (уровни I–IV, 24 схемы) и УСБ</h4>
+                    <p>Открывайте уровни теневого бизнеса (вход 100 / 200 / 350 / 500 тыс. ₽ или по звёздам крышевания; у Кристины III уровень — 450 тыс. ₽) и берите карты схем из колоды (№ 01–№ 24) с учётом лимита карт и максимальной цены карты по уровню. При попадании в <strong>УСБ</strong> проводится облава по уровню тени (с учётом скидок Отделов, деления ÷2 у Кристины, защиты «Офшора на Кипре» и иммунитетов).</p>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ROLES = [
+            {
+                id: 'yakovlev',
+                name: 'Яковлев',
+                shortName: 'Яков.',
+                token: 'ЯК',
+                accent: '#8e1c1c',
+                perk: 'На «Бане у Яковлева» доп. +100 тыс. ₽; 1 раз за круг перетягивает карту «Кабинета Яковлева»; хранит минимум 1 Отдел.'
+            },
+            {
+                id: 'grisha',
+                name: 'Гриша Измайлов',
+                shortName: 'Гриша',
+                token: 'ГР',
+                accent: '#1d3f66',
+                perk: 'Дубль 1-1 вызывает «на ковёр» (пропуск след. хода); 1 раз за круг перебрасывает кубик проверки саун.'
+            },
+            {
+                id: 'rybkina',
+                name: 'Рыбкина',
+                shortName: 'Рыбк.',
+                token: 'РЫ',
+                accent: '#6d28d9',
+                perk: '1 раз за ход сдвиг ±1 кл. перед броском; скидка −20 тыс. ₽ на звёзды (мин. 30 тыс. ₽); 0 ₽ между своими Отделами.'
+            },
+            {
+                id: 'muhich',
+                name: 'Мухич',
+                shortName: 'Мухич',
+                token: 'МУ',
+                accent: '#b45309',
+                perk: 'Скидка −20% на 1-ю звезду, +20 тыс. ₽ на 2–4★; 4 ключевые точки за 0 ₽; при сумме 11 получает и «Шаурму», и карту Кабинета.'
+            },
+            {
+                id: 'kristina',
+                name: 'Кристина',
+                shortName: 'Крист.',
+                token: 'КР',
+                accent: '#be185d',
+                perk: 'Штрафы УСБ ÷2; скидка −20% на Розовый/Оранжевый/Красный сектора; до 4 саун; 1 раз/круг −50% на чужую ренту.'
+            },
+            {
+                id: 'alena',
+                name: 'Алёна',
+                shortName: 'Алёна',
+                token: 'АЛ',
+                accent: '#0f766e',
+                perk: '+100 тыс. ₽/круг за полный цветной сектор; освобождена от элитного сбора; +50% к прочим штрафам и сборам.'
+            },
+            {
+                id: 'nika',
+                name: 'Ника',
+                shortName: 'Ника',
+                token: 'НИ',
+                accent: '#374151',
+                perk: 'На аукционах перебивает ставку на +50 тыс. ₽; на дубле 3-3 выбирает 1 карту из 2; 1 раз за игру меняет карту/схему.'
+            }
+        ];
+
+        const SECTORS = {
+            brown: { name: 'Коричневый', color: '#7c4a2d', baseStarCost: 50 },
+            lightBlue: { name: 'Голубой', color: '#0284c7', baseStarCost: 60 },
+            pink: { name: 'Розовый', color: '#db2777', baseStarCost: 80 },
+            orange: { name: 'Оранжевый', color: '#ea580c', baseStarCost: 100 },
+            red: { name: 'Красный', color: '#dc2626', baseStarCost: 130 },
+            yellow: { name: 'Жёлтый', color: '#ca8a04', baseStarCost: 150 },
+            green: { name: 'Зелёный', color: '#16a34a', baseStarCost: 180 },
+            blue: { name: 'Синий', color: '#1e3a8a', baseStarCost: 200 }
+        };
+
+        const BOARD_CELLS = [
+            { id: 0, name: 'Старт • День получки', type: 'start', price: 0, rentBase: 0 },
+            { id: 1, name: 'Шаурмечная у вокзала', type: 'property', sector: 'brown', price: 60, rentBase: 18, rents: [18, 45, 90, 150, 220] },
+            { id: 2, name: 'Кабинет Яковлева', type: 'chance', price: 0, rentBase: 0 },
+            { id: 3, name: 'Ларёк «Табак и симки»', type: 'property', sector: 'brown', price: 70, rentBase: 22, rents: [22, 55, 105, 170, 245] },
+            { id: 4, name: 'Участковый сбор', type: 'tax', price: 0, taxAmount: 100 },
+            { id: 5, name: 'Служебный отдел № 1', type: 'department', price: 150, rentBase: 40 },
+            { id: 6, name: 'Склад «Хозтовары»', type: 'property', sector: 'lightBlue', price: 90, rentBase: 28, rents: [28, 70, 130, 200, 280] },
+            { id: 7, name: 'Барыга на районе', type: 'baryga', price: 0, rentBase: 0 },
+            { id: 8, name: 'Ломбард «Моментальный»', type: 'property', sector: 'lightBlue', price: 100, rentBase: 32, rents: [32, 80, 145, 220, 305] },
+            { id: 9, name: 'Автомойка «Пена»', type: 'property', sector: 'lightBlue', price: 110, rentBase: 36, rents: [36, 90, 160, 240, 330] },
+            { id: 10, name: 'Проверка УСБ', type: 'usb', price: 0, rentBase: 0 },
+            { id: 11, name: 'Салон Кристины', type: 'property', sector: 'pink', price: 130, rentBase: 44, rents: [44, 105, 185, 275, 375] },
+            { id: 12, name: 'Спецслужба «Контур-А»', type: 'specops', price: 180, rentBase: 55 },
+            { id: 13, name: 'Караоке «Ночной опер»', type: 'property', sector: 'pink', price: 140, rentBase: 48, rents: [48, 115, 200, 295, 400] },
+            { id: 14, name: 'Бильярдная «Сукно»', type: 'property', sector: 'pink', price: 150, rentBase: 52, rents: [52, 125, 215, 315, 425] },
+            { id: 15, name: 'Служебный отдел № 2', type: 'department', price: 160, rentBase: 45 },
+            { id: 16, name: 'Шиномонтаж «Трасса»', type: 'property', sector: 'orange', price: 170, rentBase: 60, rents: [60, 140, 240, 350, 470] },
+            { id: 17, name: 'Кабинет Яковлева', type: 'chance', price: 0, rentBase: 0 },
+            { id: 18, name: 'Кофейня Алёны', type: 'property', sector: 'orange', price: 180, rentBase: 65, rents: [65, 150, 255, 370, 495] },
+            { id: 19, name: 'Пивной бар «Кег»', type: 'property', sector: 'orange', price: 190, rentBase: 70, rents: [70, 165, 275, 395, 525] },
+            { id: 20, name: 'Парковка «Крытая»', type: 'free_parking', price: 0, rentBase: 0 },
+            { id: 21, name: 'Баня у Яковлева', type: 'property', sector: 'red', price: 210, rentBase: 78, rents: [78, 180, 300, 430, 570] },
+            { id: 22, name: 'Бутик мехов', type: 'property', sector: 'red', price: 220, rentBase: 82, rents: [82, 190, 315, 450, 595] },
+            { id: 23, name: 'Кабинет Яковлева', type: 'chance', price: 0, rentBase: 0 },
+            { id: 24, name: 'Ресторан на Рублёво-Успенском', type: 'property', sector: 'red', price: 240, rentBase: 90, rents: [90, 210, 345, 490, 645] },
+            { id: 25, name: 'Служебный отдел № 3', type: 'department', price: 170, rentBase: 50 },
+            { id: 26, name: 'Клуб «Золотая клетка»', type: 'property', sector: 'yellow', price: 260, rentBase: 98, rents: [98, 225, 370, 525, 690] },
+            { id: 27, name: 'Казино «Подвал»', type: 'property', sector: 'yellow', price: 270, rentBase: 104, rents: [104, 240, 390, 550, 720] },
+            { id: 28, name: 'Спецслужба «Контур-Б»', type: 'specops', price: 190, rentBase: 60 },
+            { id: 29, name: 'Отель «Премьер-Опер»', type: 'property', sector: 'yellow', price: 290, rentBase: 112, rents: [112, 255, 415, 585, 760] },
+            { id: 30, name: 'Вызов в УСБ', type: 'go_usb', price: 0, rentBase: 0 },
+            { id: 31, name: 'Особняк с ручным тигром', type: 'property', sector: 'green', price: 310, rentBase: 120, rents: [120, 275, 445, 625, 810] },
+            { id: 32, name: 'Частный яхт-клуб', type: 'property', sector: 'green', price: 325, rentBase: 128, rents: [128, 290, 470, 660, 855] },
+            { id: 33, name: 'Кабинет Яковлева', type: 'chance', price: 0, rentBase: 0 },
+            { id: 34, name: 'Вертолётная площадка', type: 'property', sector: 'green', price: 340, rentBase: 136, rents: [136, 310, 500, 700, 900] },
+            { id: 35, name: 'Служебный отдел № 4', type: 'department', price: 180, rentBase: 55 },
+            { id: 36, name: 'Элитный сбор', type: 'tax', price: 0, taxAmount: 150, isLuxuryTax: true },
+            { id: 37, name: 'Барвиха Luxury Village', type: 'property', sector: 'blue', price: 370, rentBase: 155, rents: [155, 350, 560, 780, 1000] },
+            { id: 38, name: 'Кабинет Яковлева', type: 'chance', price: 0, rentBase: 0 },
+            { id: 39, name: 'Пентхаус «Кремлёвский вид»', type: 'property', sector: 'blue', price: 400, rentBase: 175, rents: [175, 390, 620, 860, 1100] }
+        ];
+
+        const SHADOW_TIERS = {
+            0: { name: 'Нет доступа', maxCards: 0, maxCardCost: 0, raidFine: 0 },
+            1: { name: 'I уровень (Низовка)', maxCards: 1, maxCardCost: 100, raidFine: 60 },
+            2: { name: 'II уровень (Схема)', maxCards: 2, maxCardCost: 150, raidFine: 120 },
+            3: { name: 'III уровень (Крыша)', maxCards: 3, maxCardCost: 200, raidFine: 200 },
+            4: { name: 'IV уровень (Элита)', maxCards: 4, maxCardCost: 250, raidFine: 300 }
+        };
+
+        const SHADOW_SCHEMES_DECK = [
+            { code: '№ 01', name: 'Левый наряд', tier: 1, cost: 60, instantCash: 90, income: 10 },
+            { code: '№ 02', name: 'Контрафактный табак', tier: 1, cost: 80, income: 25 },
+            { code: '№ 03', name: 'Звонок «решале»', tier: 1, cost: 70, instantCash: 50, usbShield: true },
+            { code: '№ 04', name: 'Откат с парковки', tier: 1, cost: 90, income: 30 },
+            { code: '№ 05', name: 'Подставной понятой', tier: 1, cost: 55, instantCash: 75, income: 10 },
+            { code: '№ 06', name: 'Серый трансфер', tier: 1, cost: 95, income: 35 },
+            { code: '№ 07', name: 'Ночной оборот', tier: 2, cost: 110, income: 45 },
+            { code: '№ 08', name: 'Закрытый бильярд', tier: 2, cost: 120, income: 50 },
+            { code: '№ 09', name: 'Рейдерский выкуп', tier: 2, cost: 135, instantCash: 140, income: 20 },
+            { code: '№ 10', name: 'Потеря протокола', tier: 2, cost: 105, instantCash: 95, income: 20 },
+            { code: '№ 11', name: 'Скрытая касса', tier: 2, cost: 140, instantCash: 110, income: 30 },
+            { code: '№ 12', name: 'Двойная бухгалтерия', tier: 2, cost: 150, income: 60 },
+            { code: '№ 13', name: 'Инсайд с Рублёвки', tier: 3, cost: 165, customMoveSteps: 5, income: 40 },
+            { code: '№ 14', name: 'VIP-сопровождение', tier: 3, cost: 180, income: 75 },
+            { code: '№ 15', name: 'Подмена вещдоков', tier: 3, cost: 170, antiSchemeShield: true, income: 35 },
+            { code: '№ 16', name: 'Закрытый приём', tier: 3, cost: 190, income: 85 },
+            { code: '№ 17', name: 'Клубный процент', tier: 3, cost: 185, income: 80 },
+            { code: '№ 18', name: 'Трастовый счёт', tier: 3, cost: 200, income: 95 },
+            { code: '№ 19', name: 'Синдикат «Север»', tier: 4, cost: 220, income: 115 },
+            { code: '№ 20', name: 'Маскировка активов', tier: 4, cost: 210, instantCash: 180, income: 55 },
+            { code: '№ 21', name: 'Офшор на Кипре', tier: 4, cost: 240, offshoreShield: true, income: 110 },
+            { code: '№ 22', name: 'Элитный консалтинг', tier: 4, cost: 230, income: 125 },
+            { code: '№ 23', name: 'Тихая проводка', tier: 4, cost: 215, instantCash: 160, income: 60 },
+            { code: '№ 24', name: 'Обмен активами по-тихому', tier: 4, cost: 250, instantCash: 200, income: 90 }
+        ];
+
+        const CHANCE_CARDS = [
+            { title: 'Премия за раскрытие', text: 'Отличная отработка! Получите 120 тыс. ₽ из кассы.', deltaCash: 120 },
+            { title: 'Внеплановый выговор', text: 'Начальство недовольно отчётом. Штраф 70 тыс. ₽.', deltaCash: -70 },
+            { title: 'Перевод на Старт', text: 'Срочный вызов в штаб! Переместитесь на клетку «Старт» и получите 200 тыс. ₽.', moveTo: 0, startBonus: 200 },
+            { title: 'Карта «Выход из УСБ»', text: 'Сохраните пропуск из УСБ (действует 1 раз, возвращается в колоду).', addJailCard: true },
+            { title: '«Крыса» в отделе', text: 'На вас повесили «Крысу» — доходы с точек/схем делятся пополам, пока не снимете.', setRat: true },
+            { title: '«УСБ: На крючке»', text: 'УСБ взяло вас на карандаш! Будьте осторожны при облавах и обменах.', setHooked: true },
+            { title: 'Слив компромата', text: 'Удачный слив конкурента приносит 150 тыс. ₽.', deltaCash: 150 },
+            { title: 'Проверка документов', text: 'Оплата сборов и бланков: 60 тыс. ₽.', deltaCash: -60 }
+        ];
+
+        const TOKEN_MATRIX = {
+            yakovlev: { shaurma: 45, gastarbaitery: 50, uchastkovy: 45, prostitute: 55, hostel: 160 },
+            grisha: { shaurma: 50, gastarbaitery: 55, uchastkovy: 55, prostitute: 60, hostel: 170 },
+            rybkina: { shaurma: 45, gastarbaitery: 45, uchastkovy: 50, prostitute: 50, hostel: 165 },
+            muhich: { shaurma: 35, gastarbaitery: 55, uchastkovy: 50, prostitute: 60, hostel: 175 },
+            kristina: { shaurma: 50, gastarbaitery: 50, uchastkovy: 55, prostitute: 40, hostel: 155 },
+            alena: { shaurma: 50, gastarbaitery: 50, uchastkovy: 55, prostitute: 55, hostel: 150 },
+            nika: { shaurma: 50, gastarbaitery: 50, uchastkovy: 50, prostitute: 50, hostel: 160 }
+        };
+
+        let lobbyMode = 'hotseat';
+        let lobbySlots = [
+            { name: 'Опер-1', roleId: 'yakovlev', guestId: null },
+            { name: 'Опер-2', roleId: 'grisha', guestId: null }
+        ];
+        let roomMembers = [];
+        let gameState = null;
+        let selectedInspectorCellId = 1;
+
+        let localGuestId = `guest_${Math.random().toString(36).slice(2, 9)}`;
+        let localNetworkSeat = null;
+        let networkRoomCode = '';
+        let networkChannel = null;
+        let networkPollTimer = null;
+        let lastProcessedNetMsgId = '';
+
+        function saveRoomSnapshot(code, envelope) {
+            try {
+                localStorage.setItem(`operskaya_room_${code}`, JSON.stringify(envelope));
+            } catch (e) {}
+        }
+
+        function loadRoomSnapshot(code) {
+            try {
+                const raw = localStorage.getItem(`operskaya_room_${code}`);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function ensureRoomMember(member) {
+            if (!member || !member.id) return;
+            const idx = roomMembers.findIndex(m => m.id === member.id);
+            if (idx !== -1) {
+                roomMembers[idx] = {
+                    ...roomMembers[idx],
+                    ...member,
+                    name: member.name || roomMembers[idx].name
+                };
+            } else {
+                roomMembers.push({
+                    id: member.id,
+                    name: member.name || `Опер-${Math.floor(100 + Math.random() * 899)}`,
+                    isHost: Boolean(member.isHost),
+                    joinedAt: member.joinedAt || Date.now()
+                });
+            }
+        }
+
+        function updateInviteLinkBox(code) {
+            const box = document.getElementById('net-invite-box');
+            const codeEl = document.getElementById('net-room-code-display');
+            const linkEl = document.getElementById('net-invite-link-display');
+            if (!code) {
+                if (box) box.classList.add('hidden');
+                return;
+            }
+            const url = new URL(window.location.href);
+            url.searchParams.set('room', code);
+            if (box) box.classList.remove('hidden');
+            if (codeEl) codeEl.textContent = code;
+            if (linkEl) linkEl.textContent = url.toString();
+        }
+
+        function copyInviteLink() {
+            const linkText = document.getElementById('net-invite-link-display')?.textContent || '';
+            if (!linkText) return;
+            const temp = document.createElement('textarea');
+            temp.value = linkText;
+            document.body.appendChild(temp);
+            temp.select();
+            try { document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(temp);
+            const info = document.getElementById('net-room-info');
+            if (info) info.textContent = 'Ссылка-приглашение скопирована в буфер обмена.';
+        }
+
+        function renderRoomMembers() {
+            const listEl = document.getElementById('net-room-members-list');
+            if (!listEl) return;
+            if (roomMembers.length === 0) {
+                listEl.innerHTML = '<span class="text-xs text-[#5c5346]">Пока нет подключённых участников.</span>';
+                return;
+            }
+            listEl.innerHTML = roomMembers.map((m, idx) => {
+                const slotIdx = lobbySlots.findIndex(s => s.guestId === m.id || s.name === m.name);
+                const slotLabel = slotIdx !== -1 ? `Слот #${slotIdx + 1}` : `Участник #${idx + 1}`;
+                const isMe = m.id === localGuestId;
+                return `<span class="px-2.5 py-1 rounded-full text-xs font-bold border ${isMe ? 'bg-sky-100 text-sky-950 border-sky-700' : 'bg-[#fbf7ef] text-[#1e1b18] border-[#6f6252]'}">${m.name}${isMe ? ' (Вы)' : ''} • ${slotLabel}${m.isHost ? ' • Хост' : ''}</span>`;
+            }).join('');
+        }
+
+        function setLobbyMode(mode) {
+            lobbyMode = mode;
+            const hotseatBtn = document.getElementById('mode-btn-hotseat');
+            const netBtn = document.getElementById('mode-btn-network');
+            const netPanel = document.getElementById('network-room-panel');
+            if (mode === 'network') {
+                hotseatBtn?.classList.remove('bg-[#1e1b18]', 'text-white');
+                hotseatBtn?.classList.add('bg-[#e8dcc5]', 'text-[#1e1b18]');
+                netBtn?.classList.remove('bg-[#e8dcc5]', 'text-[#1e1b18]');
+                netBtn?.classList.add('bg-[#1e1b18]', 'text-white');
+                netPanel?.classList.remove('hidden');
+                renderRoomMembers();
+            } else {
+                netBtn?.classList.remove('bg-[#1e1b18]', 'text-white');
+                netBtn?.classList.add('bg-[#e8dcc5]', 'text-[#1e1b18]');
+                hotseatBtn?.classList.remove('bg-[#e8dcc5]', 'text-[#1e1b18]');
+                hotseatBtn?.classList.add('bg-[#1e1b18]', 'text-white');
+                netPanel?.classList.add('hidden');
+            }
+            if (gameState) {
+                commitGameAction();
+            }
+        }
+
+        function switchLocalNetworkSeat(idxVal) {
+            const idx = Number(idxVal);
+            if (Number.isNaN(idx) || !lobbySlots[idx]) return;
+            localNetworkSeat = idx;
+            const activeName = (document.getElementById('net-callsign-input')?.value || '').trim();
+            if (activeName) {
+                lobbySlots[idx].name = activeName;
+                lobbySlots[idx].guestId = localGuestId;
+                ensureRoomMember({ id: localGuestId, name: activeName, isHost: idx === 0 });
+                if (gameState && gameState.players[idx]) {
+                    gameState.players[idx].name = activeName;
+                    gameState.players[idx].guestId = localGuestId;
+                }
+            } else if (!lobbySlots[idx].guestId) {
+                lobbySlots[idx].guestId = localGuestId;
+            }
+            renderRoomMembers();
+            renderLobby();
+            commitGameAction();
+        }
+
+        function initNetworkChannel(roomCode) {
+            networkRoomCode = (roomCode || '').trim().toUpperCase();
+            if (!networkRoomCode) return;
+            if (networkChannel) {
+                try { networkChannel.close(); } catch (e) {}
+            }
+            if (window.BroadcastChannel) {
+                networkChannel = new BroadcastChannel(`operskaya_om_${networkRoomCode}`);
+                networkChannel.onmessage = (event) => handleNetworkMessage(event.data);
+            }
+            if (networkPollTimer) clearInterval(networkPollTimer);
+            const snapshot = loadRoomSnapshot(networkRoomCode);
+            if (snapshot) {
+                handleNetworkMessage(snapshot);
+            }
+            networkPollTimer = setInterval(() => {
+                const latest = loadRoomSnapshot(networkRoomCode);
+                if (latest && latest.msgId && latest.msgId !== lastProcessedNetMsgId) {
+                    handleNetworkMessage(latest);
+                }
+            }, 450);
+        }
+
+        function broadcastNetwork(payload) {
+            if (!networkRoomCode) return;
+            const envelope = {
+                ...payload,
+                msgId: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                senderId: localGuestId,
+                roomCode: networkRoomCode,
+                sentAt: Date.now()
+            };
+            lastProcessedNetMsgId = envelope.msgId;
+            saveRoomSnapshot(networkRoomCode, envelope);
+            if (networkChannel) {
+                try { networkChannel.postMessage(envelope); } catch (e) {}
+            }
+        }
+
+        function handleNetworkMessage(msg) {
+            if (!msg || !msg.type) return;
+            if (msg.msgId && msg.msgId === lastProcessedNetMsgId && msg.senderId === localGuestId) return;
+            if (msg.msgId) lastProcessedNetMsgId = msg.msgId;
+
+            if (msg.type === 'HELLO_ROOM') {
+                ensureRoomMember({
+                    id: msg.guestId || msg.senderId,
+                    name: msg.playerName || 'Опер',
+                    isHost: false,
+                    joinedAt: Date.now()
+                });
+                let seatIdx = lobbySlots.findIndex(s => (msg.guestId && s.guestId === msg.guestId) || s.name === msg.playerName);
+                if (seatIdx === -1 && lobbySlots.length < 7) {
+                    const used = new Set(lobbySlots.map(s => s.roleId));
+                    const nextRole = ROLES.find(r => !used.has(r.id)) || ROLES[lobbySlots.length % ROLES.length];
+                    lobbySlots.push({
+                        name: msg.playerName || `Опер-${lobbySlots.length + 1}`,
+                        roleId: nextRole.id,
+                        guestId: msg.guestId || msg.senderId
+                    });
+                    seatIdx = lobbySlots.length - 1;
+                }
+                renderRoomMembers();
+                renderLobby();
+                broadcastNetwork({
+                    type: 'ROOM_ROSTER',
+                    slots: lobbySlots,
+                    members: roomMembers,
+                    state: gameState
+                });
+                return;
+            }
+
+            if (msg.type === 'ROOM_ROSTER' || msg.type === 'LOBBY_SYNC') {
+                if (Array.isArray(msg.members) && msg.members.length > 0) {
+                    msg.members.forEach(m => ensureRoomMember(m));
+                }
+                if (Array.isArray(msg.slots) && msg.slots.length > 0) {
+                    lobbySlots = msg.slots.map((s, idx) => ({
+                        ...s,
+                        name: s.name || `Игрок ${idx + 1}`,
+                        roleId: s.roleId || ROLES[idx % ROLES.length].id
+                    }));
+                    const matchedIdx = lobbySlots.findIndex(s => s.guestId === localGuestId);
+                    if (matchedIdx !== -1) {
+                        localNetworkSeat = matchedIdx;
+                    } else if (localNetworkSeat === null || !lobbySlots[localNetworkSeat]) {
+                        localNetworkSeat = 0;
+                    }
+                }
+                if (msg.state) {
+                    gameState = msg.state;
+                }
+                renderRoomMembers();
+                renderLobby();
+                if (gameState) {
+                    showGameScreen();
+                    renderAll();
+                }
+                return;
+            }
+
+            if (msg.type === 'GAME_START') {
+                if (Array.isArray(msg.slots) && msg.slots.length > 0) {
+                    lobbySlots = msg.slots.map((s, idx) => ({
+                        ...s,
+                        name: s.name || `Игрок ${idx + 1}`,
+                        roleId: s.roleId || ROLES[idx % ROLES.length].id
+                    }));
+                    const matchedIdx = lobbySlots.findIndex(s => s.guestId === localGuestId);
+                    localNetworkSeat = matchedIdx !== -1 ? matchedIdx : (localNetworkSeat ?? 0);
+                }
+                if (Array.isArray(msg.members) && msg.members.length > 0) {
+                    msg.members.forEach(m => ensureRoomMember(m));
+                }
+                if (msg.state) {
+                    gameState = msg.state;
+                    showGameScreen();
+                    renderAll();
+                }
+                return;
+            }
+
+            if (msg.type === 'STATE_SYNC' && msg.state) {
+                if (Array.isArray(msg.slots) && msg.slots.length > 0) {
+                    lobbySlots = msg.slots;
+                }
+                if (Array.isArray(msg.members) && msg.members.length > 0) {
+                    msg.members.forEach(m => ensureRoomMember(m));
+                }
+                gameState = msg.state;
+                showGameScreen();
+                renderAll();
+            }
+        }
+
+        function createNetworkRoom() {
+            setLobbyMode('network');
+            const codeInput = document.getElementById('net-room-code-input');
+            const callsignInput = document.getElementById('net-callsign-input');
+            const code = (codeInput?.value || '').trim().toUpperCase() || `OM-${Math.floor(1000 + Math.random() * 9000)}`;
+            if (codeInput) codeInput.value = code;
+            const hostName = (callsignInput?.value || '').trim() || lobbySlots[0]?.name || 'Опер-Хост';
+            if (callsignInput) callsignInput.value = hostName;
+
+            if (lobbySlots.length === 0) {
+                lobbySlots = [
+                    { name: hostName, roleId: 'yakovlev', guestId: localGuestId },
+                    { name: 'Опер-2', roleId: 'grisha', guestId: null }
+                ];
+            } else {
+                lobbySlots[0] = { ...lobbySlots[0], name: hostName, guestId: localGuestId };
+            }
+            localNetworkSeat = 0;
+            roomMembers = [{ id: localGuestId, name: hostName, isHost: true, joinedAt: Date.now() }];
+
+            initNetworkChannel(code);
+            updateInviteLinkBox(code);
+            const info = document.getElementById('net-room-info');
+            if (info) info.textContent = `Комната ${code} создана. Отправьте код или ссылку — вошедшие появятся в списке ниже.`;
+
+            renderRoomMembers();
+            renderLobby();
+            broadcastNetwork({ type: 'ROOM_ROSTER', slots: lobbySlots, members: roomMembers, state: gameState });
+        }
+
+        function joinNetworkRoom() {
+            setLobbyMode('network');
+            const codeInput = document.getElementById('net-room-code-input');
+            const callsignInput = document.getElementById('net-callsign-input');
+            const code = (codeInput?.value || '').trim().toUpperCase();
+            if (!code) {
+                const info = document.getElementById('net-room-info');
+                if (info) info.textContent = 'Введите код комнаты или нажмите «Создать комнату».';
+                return;
+            }
+            if (codeInput) codeInput.value = code;
+            const myName = (callsignInput?.value || '').trim() || `Опер-${Math.floor(100 + Math.random() * 899)}`;
+            if (callsignInput) callsignInput.value = myName;
+
+            initNetworkChannel(code);
+            updateInviteLinkBox(code);
+
+            const existingSnap = loadRoomSnapshot(code);
+            if (existingSnap) {
+                if (Array.isArray(existingSnap.members)) {
+                    existingSnap.members.forEach(m => ensureRoomMember(m));
+                }
+                if (Array.isArray(existingSnap.slots) && existingSnap.slots.length > 0) {
+                    lobbySlots = existingSnap.slots;
+                }
+                if (existingSnap.state) {
+                    gameState = existingSnap.state;
+                }
+            }
+
+            ensureRoomMember({ id: localGuestId, name: myName, isHost: false, joinedAt: Date.now() });
+            const existingIdx = lobbySlots.findIndex(s => s.guestId === localGuestId || s.name === myName);
+            if (existingIdx !== -1) {
+                lobbySlots[existingIdx].guestId = localGuestId;
+                lobbySlots[existingIdx].name = myName;
+                localNetworkSeat = existingIdx;
+            } else if (lobbySlots.length < 7) {
+                const used = new Set(lobbySlots.map(s => s.roleId));
+                const nextRole = ROLES.find(r => !used.has(r.id)) || ROLES[lobbySlots.length % ROLES.length];
+                lobbySlots.push({ name: myName, roleId: nextRole.id, guestId: localGuestId });
+                localNetworkSeat = lobbySlots.length - 1;
+            } else {
+                localNetworkSeat = 1;
+                lobbySlots[1].guestId = localGuestId;
+                lobbySlots[1].name = myName;
+            }
+
+            const info = document.getElementById('net-room-info');
+            if (info) info.textContent = `Вы (${myName}) вошли в комнату ${code} (Слот #${localNetworkSeat + 1}). Участников: ${roomMembers.length}.`;
+
+            broadcastNetwork({ type: 'HELLO_ROOM', playerName: myName, guestId: localGuestId });
+            broadcastNetwork({ type: 'ROOM_ROSTER', slots: lobbySlots, members: roomMembers, state: gameState });
+            renderRoomMembers();
+            renderLobby();
+            if (gameState) {
+                showGameScreen();
+                renderAll();
+            }
+        }
+
+        function formatMoney(val) {
+            return `${Math.round(val).toLocaleString('ru-RU')} тыс. ₽`;
+        }
+
+        function shuffleArray(arr) {
+            const copy = arr.slice();
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function shuffleShadowDeck() {
+            return shuffleArray(SHADOW_SCHEMES_DECK).map((item, idx) => ({
+                ...item,
+                uid: `${item.code}_${idx}_${Math.random().toString(36).slice(2, 6)}`
+            }));
+        }
+
+        function shuffleChanceDeck() {
+            return shuffleArray(CHANCE_CARDS).map((item, idx) => ({
+                ...item,
+                uid: `ch_${idx}_${Math.random().toString(36).slice(2, 6)}`
+            }));
+        }
+
+        function addLog(message) {
+            if (!gameState) return;
+            gameState.logs.unshift(`[К${gameState.round}] ${message}`);
+            if (gameState.logs.length > 90) {
+                gameState.logs.length = 90;
+            }
+        }
+
+        function showGameScreen() {
+            document.getElementById('lobby-screen')?.classList.add('hidden');
+            document.getElementById('game-screen')?.classList.remove('hidden');
+        }
+
+        function returnToLobby() {
+            document.getElementById('game-screen')?.classList.add('hidden');
+            document.getElementById('lobby-screen')?.classList.remove('hidden');
+            renderLobby();
+            renderRoomMembers();
+        }
+
+        function openRulesModal() {
+            document.getElementById('rules-modal')?.classList.remove('hidden');
+        }
+
+        function closeRulesModal() {
+            document.getElementById('rules-modal')?.classList.add('hidden');
+        }
+
+        function closeCellModal() {
+            document.getElementById('cell-modal')?.classList.add('hidden');
+        }
+
+        function renderLobby() {
+            const countEl = document.getElementById('lobby-player-count');
+            const addBtn = document.getElementById('add-slot-btn');
+            const grid = document.getElementById('lobby-slots-grid');
+            const refGrid = document.getElementById('lobby-roles-reference');
+
+            if (countEl) countEl.textContent = String(lobbySlots.length);
+            if (addBtn) addBtn.disabled = lobbySlots.length >= 7;
+
+            if (grid) {
+                grid.innerHTML = lobbySlots.map((slot, idx) => {
+                    const role = ROLES.find(r => r.id === slot.roleId) || ROLES[idx % ROLES.length];
+                    const isMe = slot.guestId && slot.guestId === localGuestId;
+                    return `
+                        <div class="archive-card p-3 space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="mono text-xs font-bold px-2 py-0.5 rounded bg-[#e8dcc5] border border-[#6f6252]">Слот #${idx + 1}${isMe ? ' • Вы' : ''}</span>
+                                ${lobbySlots.length > 2 ? `<button type="button" onclick="removeHotseatSlot(${idx})" class="text-xs font-bold text-[#8e1c1c] hover:underline">Удалить</button>` : ''}
+                            </div>
+                            <input type="text" value="${slot.name}" onchange="updateSlotName(${idx}, this.value)" class="w-full px-2.5 py-1.5 text-xs sm:text-sm font-semibold rounded border border-[#6f6252] bg-white text-[#1e1b18]" placeholder="Позывной оперативника" />
+                            <select onchange="updateSlotRole(${idx}, this.value)" class="w-full px-2.5 py-1.5 text-xs rounded border border-[#6f6252] bg-[#fbf7ef] text-[#1e1b18] font-semibold">
+                                ${ROLES.map(r => `<option value="${r.id}" ${r.id === role.id ? 'selected' : ''}>${r.name} (${r.token})</option>`).join('')}
+                            </select>
+                            <div class="text-[11px] text-[#4a4035] leading-snug">${role.perk}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (refGrid) {
+                refGrid.innerHTML = ROLES.map(r => `
+                    <div class="p-2 rounded bg-[#fbf7ef] border border-[#c7b89e]">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-extrabold" style="color:${r.accent}">${r.name}</span>
+                            <span class="mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#e8dcc5]">${r.token}</span>
+                        </div>
+                        <p class="text-[11px] text-[#4a4035] leading-tight">${r.perk}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateSlotName(idx, val) {
+            if (!lobbySlots[idx]) return;
+            const cleanName = val.trim() || `Игрок ${idx + 1}`;
+            lobbySlots[idx].name = cleanName;
+            if (lobbySlots[idx].guestId === localGuestId || idx === localNetworkSeat) {
+                ensureRoomMember({ id: lobbySlots[idx].guestId || localGuestId, name: cleanName, isHost: idx === 0 });
+            }
+            if (gameState && gameState.players[idx]) {
+                gameState.players[idx].name = cleanName;
+            }
+            renderRoomMembers();
+            renderAll();
+            broadcastNetwork({ type: 'LOBBY_SYNC', slots: lobbySlots, members: roomMembers, state: gameState });
+        }
+
+        function updateSlotRole(idx, roleId) {
+            if (!lobbySlots[idx]) return;
+            lobbySlots[idx].roleId = roleId;
+            if (gameState && gameState.players[idx]) {
+                const roleObj = ROLES.find(r => r.id === roleId);
+                if (roleObj) {
+                    gameState.players[idx].roleId = roleObj.id;
+                    gameState.players[idx].roleName = roleObj.name;
+                    gameState.players[idx].shortName = roleObj.shortName;
+                    gameState.players[idx].token = roleObj.token;
+                }
+            }
+            renderRoomMembers();
+            renderLobby();
+            renderAll();
+            broadcastNetwork({ type: 'LOBBY_SYNC', slots: lobbySlots, members: roomMembers, state: gameState });
+        }
+
+        function addHotseatSlot() {
+            if (lobbySlots.length >= 7) return;
+            const used = new Set(lobbySlots.map(s => s.roleId));
+            const nextRole = ROLES.find(r => !used.has(r.id)) || ROLES[lobbySlots.length % ROLES.length];
+            lobbySlots.push({ name: `Опер-${lobbySlots.length + 1}`, roleId: nextRole.id, guestId: null });
+            renderRoomMembers();
+            renderLobby();
+            broadcastNetwork({ type: 'LOBBY_SYNC', slots: lobbySlots, members: roomMembers, state: gameState });
+        }
+
+        function removeHotseatSlot(idx) {
+            if (lobbySlots.length <= 2) return;
+            lobbySlots.splice(idx, 1);
+            if (localNetworkSeat !== null && localNetworkSeat >= lobbySlots.length) {
+                localNetworkSeat = lobbySlots.length - 1;
+            }
+            renderRoomMembers();
+            renderLobby();
+            broadcastNetwork({ type: 'LOBBY_SYNC', slots: lobbySlots, members: roomMembers, state: gameState });
+        }
+
+        function startGameFromLobby() {
+            const players = lobbySlots.map((slot, idx) => {
+                const role = ROLES.find(r => r.id === slot.roleId) || ROLES[idx % ROLES.length];
+                const cleanName = (slot.name || '').trim() || `Опер-${idx + 1}`;
+                return {
+                    id: `p_${idx + 1}_${role.id}`,
+                    seatIndex: idx,
+                    guestId: slot.guestId || null,
+                    name: cleanName,
+                    roleId: role.id,
+                    roleName: role.name,
+                    shortName: role.shortName,
+                    token: role.token,
+                    cash: 1500,
+                    pos: 0,
+                    inUsb: false,
+                    usbTurns: 0,
+                    jailFreeCards: 0,
+                    doublesCount: 0,
+                    skipNextTurn: false,
+                    usedRybkinaNudgeThisTurn: false,
+                    passedBarygaThisTurn: false,
+                    usedKristinaRentDiscountThisRound: false,
+                    kristinaNextShadowDiscount: false,
+                    usedDeptTokenDiscountThisRound: false,
+                    usedDeptRatClearThisRound: false,
+                    usedSpecOpsActionThisRound: false,
+                    usedSpecOpsShadowStealThisRound: false,
+                    usedSauna1BonusThisRound: false,
+                    usedGrishaSaunaRerollThisRound: false,
+                    usedRybkinaDeptJumpThisRound: false,
+                    usedNikaSwapOnce: false,
+                    usedYakovlevCabinetRerollThisRound: false,
+                    blockedLinkRounds: 0,
+                    pocketWatchBlockedRounds: 0,
+                    roundsCompleted: 0,
+                    eliminated: false,
+                    saunas: 0,
+                    cafeshkaCount: 0,
+                    hasHostel: false,
+                    shadowTier: 0,
+                    shadowSchemes: [],
+                    pendingShadowChoices: [],
+                    activeLinks: [],
+                    tokens: {
+                        shaurma: 0,
+                        gastarbaitery: 0,
+                        uchastkovy: 0,
+                        prostitute: 0,
+                        ratOnMe: false,
+                        hookedByUsb: false
+                    }
+                };
+            });
+
+            gameState = {
+                players,
+                turnIndex: 0,
+                round: 1,
+                hasRolled: false,
+                lastDice: [1, 1],
+                barygaPos: 12,
+                barygaSealedCells: [],
+                cellOwners: {},
+                cellStars: {},
+                cellMortgaged: {},
+                shadowDeck: shuffleShadowDeck(),
+                chanceDeck: shuffleChanceDeck(),
+                pendingBuyCellId: null,
+                pendingAuctionCellId: null,
+                pendingBarygaChoice: null,
+                rescuePlayerId: null,
+                logs: [
+                    `Дело № 77/40-ОМ открыто. Участников: ${players.length} (${lobbyMode === 'network' ? `комната ${networkRoomCode}` : 'один экран'}).`
+                ]
+            };
+
+            showGameScreen();
+            renderAll();
+            if (lobbyMode === 'network') {
+                broadcastNetwork({ type: 'GAME_START', state: gameState, slots: lobbySlots, members: roomMembers });
+            }
+        }
+
+        function isLocalTurnAllowed() {
+            if (lobbyMode !== 'network' || !gameState) return true;
+            const active = gameState.players[gameState.turnIndex];
+            if (!active) return false;
+            if (localNetworkSeat !== null && localNetworkSeat !== undefined) {
+                return active.seatIndex === localNetworkSeat;
+            }
+            return active.guestId === localGuestId;
+        }
+
+        function commitGameAction() {
+            renderAll();
+            if (lobbyMode === 'network' && gameState) {
+                broadcastNetwork({ type: 'STATE_SYNC', state: gameState, slots: lobbySlots, members: roomMembers });
+            }
+        }
+
+        function getPlayerOwnedCells(playerId) {
+            if (!gameState) return [];
+            return BOARD_CELLS.filter(c => gameState.cellOwners[c.id] === playerId);
+        }
+
+        function countOwnedByType(playerId, type) {
+            return getPlayerOwnedCells(playerId).filter(c => c.type === type).length;
+        }
+
+        function hasFullSector(playerId, sectorKey) {
+            const sectorCells = BOARD_CELLS.filter(c => c.type === 'property' && c.sector === sectorKey);
+            if (sectorCells.length === 0) return false;
+            return sectorCells.every(c => gameState.cellOwners[c.id] === playerId && !gameState.cellMortgaged[c.id]);
+        }
+
+        function syncPlayerLinksAndTokens(player) {
+            if (!gameState || !player) return;
+            while (player.tokens.shaurma >= 3) {
+                player.tokens.shaurma -= 3;
+                player.cafeshkaCount += 1;
+                addLog(`${player.name} собрал 3 «Шаурмы» и открыл «Кафешку» (+50 тыс. ₽/круг).`);
+            }
+            const links = [];
+            if (hasFullSector(player.id, 'brown') && hasFullSector(player.id, 'lightBlue')) links.push('Общепит и сбыт');
+            if (hasFullSector(player.id, 'pink') && hasFullSector(player.id, 'orange')) links.push('Гламур и сервис');
+            if (hasFullSector(player.id, 'orange') && hasFullSector(player.id, 'red')) links.push('Ночной перехват');
+            if (hasFullSector(player.id, 'yellow') && hasFullSector(player.id, 'green')) links.push('Элитный офшор');
+            if (player.tokens.uchastkovy > 0 && player.tokens.gastarbaitery > 0) links.push('Карманный надзор');
+            if (player.hasHostel || gameState.cellOwners[37] === player.id) links.push('Гостиница и досуг');
+            if (countOwnedByType(player.id, 'department') >= 2 && player.shadowTier >= 1) links.push('Стройподряд и схема');
+
+            const newlyActivated = links.filter(l => !player.activeLinks.includes(l));
+            player.activeLinks = links;
+
+            if (newlyActivated.length > 0 && gameState.shadowDeck.length > 0) {
+                const bonusCard = gameState.shadowDeck.shift();
+                player.shadowSchemes.push({ ...bonusCard, active: true, usedActive: false });
+                if (player.shadowTier < bonusCard.tier) player.shadowTier = bonusCard.tier;
+                addLog(`Активирована связка «${newlyActivated.join(', ')}» — ${player.name} получает бонусную схему «${bonusCard.name}»!`);
+            }
+        }
+
+        function getBarygaDivisor(cellId, player) {
+            if (!gameState) return 1;
+            const bothSpecOps = countOwnedByType(player.id, 'specops') >= 2;
+            if (bothSpecOps) return 1;
+            return gameState.barygaPos === cellId ? 3 : 1;
+        }
+
+        function getExactRentForCell(cell, owner, tenant) {
+            if (!gameState || !cell || !owner) return 0;
+            if (gameState.cellMortgaged[cell.id]) return 0;
+            if (gameState.barygaSealedCells.includes(cell.id)) return 0;
+
+            if (cell.type === 'department') {
+                const depts = countOwnedByType(owner.id, 'department');
+                let rent = cell.rentBase * Math.max(1, depts);
+                if (owner.tokens.ratOnMe) rent = Math.ceil(rent * 0.5);
+                return Math.ceil(rent / getBarygaDivisor(cell.id, owner));
+            }
+
+            if (cell.type === 'specops') {
+                const specs = countOwnedByType(owner.id, 'specops');
+                let rent = cell.rentBase * Math.max(1, specs);
+                if (owner.tokens.ratOnMe) rent = Math.ceil(rent * 0.5);
+                return Math.ceil(rent / getBarygaDivisor(cell.id, owner));
+            }
+
+            const stars = gameState.cellStars[cell.id] || 0;
+            let rent = Array.isArray(cell.rents) ? (cell.rents[stars] ?? cell.rentBase) : cell.rentBase;
+
+            const isBlockedLink = owner.blockedLinkRounds > 0;
+            if (!isBlockedLink && stars === 0 && hasFullSector(owner.id, cell.sector)) {
+                rent = Math.round(rent * 1.5);
+            }
+
+            if (owner.roleId === 'kristina' && (cell.sector === 'pink' || cell.sector === 'red')) {
+                rent *= 2;
+            }
+
+            if (cell.id === 21 && owner.roleId === 'yakovlev') {
+                rent += 100;
+            }
+
+            if (owner.saunas >= 2 && owner.tokens.prostitute > 0) {
+                rent *= 2;
+            }
+
+            if (owner.tokens.ratOnMe) {
+                rent = Math.ceil(rent * 0.5);
+            }
+
+            rent = Math.ceil(rent / getBarygaDivisor(cell.id, owner));
+
+            if (tenant && tenant.roleId === 'kristina' && !tenant.usedKristinaRentDiscountThisRound) {
+                rent = Math.ceil(rent * 0.5);
+            }
+
+            return Math.max(10, Math.round(rent));
+        }
+
+        function getStarUpgradeCostAndCheck(player, cell) {
+            if (!gameState || !player || !cell || cell.type !== 'property') {
+                return { canUpgrade: false, cost: 0, reason: 'Нельзя прокачать эту клетку.' };
+            }
+            if (gameState.cellOwners[cell.id] !== player.id) {
+                return { canUpgrade: false, cost: 0, reason: 'Точка не принадлежит вам.' };
+            }
+            if (gameState.cellMortgaged[cell.id]) {
+                return { canUpgrade: false, cost: 0, reason: 'Точка заложена.' };
+            }
+            if (gameState.barygaSealedCells.includes(cell.id)) {
+                return { canUpgrade: false, cost: 0, reason: 'Точка опечатана Барыгой до конца круга.' };
+            }
+            const currentStars = gameState.cellStars[cell.id] || 0;
+            if (currentStars >= 4) {
+                return { canUpgrade: false, cost: 0, reason: 'Максимум 4 звезды (4★★★★).' };
+            }
+            const nextStar = currentStars + 1;
+            const sectorInfo = SECTORS[cell.sector];
+            let cost = sectorInfo ? sectorInfo.baseStarCost : 100;
+
+            if (nextStar === 4 && (cell.sector === 'yellow' || cell.sector === 'green')) {
+                cost += 50;
+            }
+            if (nextStar >= 3 && cell.sector === 'blue') {
+                cost = Math.max(cost, 250);
+            }
+
+            if (player.roleId === 'muhich') {
+                if (nextStar === 1) {
+                    cost = Math.round(cost * 0.8);
+                } else {
+                    cost += 20;
+                }
+            }
+            if (player.roleId === 'rybkina') {
+                cost = Math.max(30, cost - 20);
+            }
+            if (nextStar === 3 && player.saunas >= 2) {
+                cost = Math.max(20, cost - 30);
+            }
+
+            return { canUpgrade: true, cost, reason: '' };
+        }
+
+        function upgradeStar(cellId) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            const cell = BOARD_CELLS.find(c => c.id === cellId);
+            const check = getStarUpgradeCostAndCheck(player, cell);
+            if (!check.canUpgrade) {
+                addLog(check.reason);
+                commitGameAction();
+                return;
+            }
+            if (player.cash < check.cost) {
+                addLog(`${player.name} не хватает средств на апгрейд «${cell.name}» (нужно ${formatMoney(check.cost)}).`);
+                commitGameAction();
+                return;
+            }
+            player.cash -= check.cost;
+            const newStars = (gameState.cellStars[cell.id] || 0) + 1;
+            gameState.cellStars[cell.id] = newStars;
+            if (player.shadowTier < newStars) {
+                player.shadowTier = newStars;
+            }
+            syncPlayerLinksAndTokens(player);
+            addLog(`${player.name} прокачал «${cell.name}» до ${newStars}★ за ${formatMoney(check.cost)}.`);
+            commitGameAction();
+        }
+
+        function toggleMortgageCell(cellId) {
+            if (!gameState) return;
+            const player = gameState.players.find(p => p.id === gameState.rescuePlayerId) || gameState.players[gameState.turnIndex];
+            const cell = BOARD_CELLS.find(c => c.id === cellId);
+            if (!player || !cell || gameState.cellOwners[cellId] !== player.id) return;
+
+            const mortgageVal = Math.round((cell.price || 100) * 0.5);
+            const redeemVal = Math.round(mortgageVal * 1.1);
+
+            if (!gameState.cellMortgaged[cellId]) {
+                gameState.cellMortgaged[cellId] = true;
+                player.cash += mortgageVal;
+                addLog(`${player.name} заложил «${cell.name}» и получил ${formatMoney(mortgageVal)}.`);
+            } else {
+                if (player.cash < redeemVal) {
+                    addLog(`Недостаточно средств для выкупа «${cell.name}» (${formatMoney(redeemVal)}).`);
+                    commitGameAction();
+                    return;
+                }
+                player.cash -= redeemVal;
+                gameState.cellMortgaged[cellId] = false;
+                addLog(`${player.name} выкупил «${cell.name}» за ${formatMoney(redeemVal)}.`);
+            }
+
+            if (gameState.rescuePlayerId === player.id && player.cash >= 0) {
+                gameState.rescuePlayerId = null;
+                addLog(`${player.name} закрыл кассовый разрыв и продолжает операцию.`);
+            }
+            commitGameAction();
+        }
+
+        function handleBuyOffer() {
+            if (!isLocalTurnAllowed() || !gameState || gameState.pendingBuyCellId === null) return;
+            const player = gameState.players[gameState.turnIndex];
+            const cell = BOARD_CELLS.find(c => c.id === gameState.pendingBuyCellId);
+            if (!player || !cell || gameState.cellOwners[cell.id]) return;
+
+            let price = cell.price || 100;
+            if (player.roleId === 'kristina' && (cell.sector === 'pink' || cell.sector === 'orange' || cell.sector === 'red')) {
+                price = Math.round(price * 0.8);
+            }
+            if (player.cash < price) {
+                addLog(`${player.name} не хватает средств на покупку «${cell.name}» (${formatMoney(price)}).`);
+                commitGameAction();
+                return;
+            }
+
+            player.cash -= price;
+            gameState.cellOwners[cell.id] = player.id;
+            gameState.cellStars[cell.id] = 0;
+            gameState.pendingBuyCellId = null;
+            gameState.pendingAuctionCellId = null;
+            syncPlayerLinksAndTokens(player);
+            addLog(`${player.name} оформил «${cell.name}» за ${formatMoney(price)}.`);
+            commitGameAction();
+        }
+
+        function startAuctionForPendingCell() {
+            if (!isLocalTurnAllowed() || !gameState || gameState.pendingBuyCellId === null) return;
+            const cell = BOARD_CELLS.find(c => c.id === gameState.pendingBuyCellId);
+            if (!cell) return;
+            gameState.pendingAuctionCellId = cell.id;
+            gameState.pendingBuyCellId = null;
+            addLog(`Объявлен аукцион на точку «${cell.name}» (стартовая цена ${formatMoney(Math.round((cell.price || 100) * 0.5))}).`);
+            commitGameAction();
+        }
+
+        function resolveAuctionWinner(winnerId, bidAmount) {
+            if (!isLocalTurnAllowed() || !gameState || gameState.pendingAuctionCellId === null) return;
+            const cell = BOARD_CELLS.find(c => c.id === gameState.pendingAuctionCellId);
+            const winner = gameState.players.find(p => p.id === winnerId);
+            if (!cell || !winner) return;
+
+            let finalBid = bidAmount;
+            if (winner.roleId === 'nika') {
+                finalBid += 50;
+            }
+            if (winner.cash < finalBid) {
+                addLog(`У ${winner.name} недостаточно средств для ставки ${formatMoney(finalBid)}.`);
+                commitGameAction();
+                return;
+            }
+            winner.cash -= finalBid;
+            gameState.cellOwners[cell.id] = winner.id;
+            gameState.cellStars[cell.id] = 0;
+            gameState.pendingAuctionCellId = null;
+            syncPlayerLinksAndTokens(winner);
+            addLog(`Аукцион выиграл ${winner.name} за ${formatMoney(finalBid)} («${cell.name}»${winner.roleId === 'nika' ? ', бонус Ники +50 т.₽' : ''}).`);
+            commitGameAction();
+        }
+
+        function skipAuctionCell() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const cell = BOARD_CELLS.find(c => c.id === gameState.pendingAuctionCellId);
+            gameState.pendingAuctionCellId = null;
+            gameState.pendingBuyCellId = null;
+            if (cell) addLog(`Точка «${cell.name}» осталась свободной.`);
+            commitGameAction();
+        }
+
+        function moveBarygaSteps(steps) {
+            if (!gameState) return;
+            const prevPos = gameState.barygaPos;
+            gameState.barygaPos = (gameState.barygaPos + steps) % BOARD_CELLS.length;
+            addLog(`Местный Барыга сдвинулся с #${prevPos} на #${gameState.barygaPos} (${BOARD_CELLS[gameState.barygaPos].name}).`);
+        }
+
+        function triggerBarygaEncounterIfNeeded(player) {
+            if (!gameState || !player || player.eliminated) return;
+            if (player.pos === gameState.barygaPos && countOwnedByType(player.id, 'specops') < 2) {
+                gameState.pendingBarygaChoice = { playerId: player.id, cellId: gameState.barygaPos, isOrientirovka: false };
+                addLog(`${player.name} пересёкся с Местным Барыгой на клетке #${gameState.barygaPos} — выберите вариант действий.`);
+            }
+        }
+
+        function openOrientirovkaAction() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || !player.passedBarygaThisTurn) return;
+            if (player.cash < 30) {
+                addLog(`Не хватает 30 тыс. ₽ на ориентировку.`);
+                commitGameAction();
+                return;
+            }
+            player.cash -= 30;
+            player.passedBarygaThisTurn = false;
+            gameState.pendingBarygaChoice = { playerId: player.id, cellId: gameState.barygaPos, isOrientirovka: true };
+            addLog(`${player.name} оплатил 30 тыс. ₽ «за ориентировку» и вышел на связь с Барыгой.`);
+            commitGameAction();
+        }
+
+        function resolveBarygaChoice(choice) {
+            if (!isLocalTurnAllowed() || !gameState || !gameState.pendingBarygaChoice) return;
+            const info = gameState.pendingBarygaChoice;
+            const player = gameState.players.find(p => p.id === info.playerId);
+            gameState.pendingBarygaChoice = null;
+            if (!player) return;
+
+            if (choice === 'law') {
+                player.cash += 50;
+                addLog(`${player.name} оформил сделку с Барыгой по регламенту (+50 тыс. ₽).`);
+            } else if (choice === 'extort') {
+                player.cash += 110;
+                if (!gameState.barygaSealedCells.includes(info.cellId)) {
+                    gameState.barygaSealedCells.push(info.cellId);
+                }
+                addLog(`${player.name} выжал с Барыги 110 тыс. ₽; точка #${info.cellId} опечатана до конца круга.`);
+            } else if (choice === 'plant') {
+                player.cash += 80;
+                player.tokens.ratOnMe = true;
+                addLog(`${player.name} провёл «подброс» с Барыгой (+80 тыс. ₽), но на оперативнике повисла «Крыса».`);
+            }
+            commitGameAction();
+        }
+
+        function sendPlayerToUsb(player, reason) {
+            if (!gameState || !player || player.eliminated) return;
+            const hasImmuneDept = countOwnedByType(player.id, 'department') >= 4;
+            const hasOffshoreShield = player.shadowSchemes.some(s => s.offshoreShield);
+            if (hasImmuneDept || hasOffshoreShield) {
+                addLog(`${player.name} избежал ареста и облавы УСБ (${hasImmuneDept ? '4 Служебных отдела' : '«Офшор на Кипре»'}).`);
+                return;
+            }
+
+            player.pos = 10;
+            player.inUsb = true;
+            player.usbTurns = 0;
+            player.doublesCount = 0;
+            gameState.hasRolled = true;
+            gameState.pendingBuyCellId = null;
+            gameState.pendingAuctionCellId = null;
+
+            const tierInfo = SHADOW_TIERS[player.shadowTier] || SHADOW_TIERS[0];
+            let fine = tierInfo.raidFine || 0;
+            if (fine > 0) {
+                const depts = countOwnedByType(player.id, 'department');
+                if (depts === 0) fine += 100;
+                if (player.activeLinks.includes('Элитный офшор') && depts === 0) fine *= 2;
+                if (player.roleId === 'kristina') fine = Math.ceil(fine * 0.5);
+                if (player.roleId === 'alena') fine = Math.round(fine * 1.5);
+
+                if (player.cash >= fine) {
+                    player.cash -= fine;
+                    addLog(`${player.name} попал в УСБ (${reason}): облава по тени обошлась в ${formatMoney(fine)}. Сауны сохранены.`);
+                } else {
+                    const burned = player.shadowSchemes.pop();
+                    if (burned) {
+                        addLog(`${player.name} попал в УСБ (${reason}): при нехватке ${formatMoney(fine)} сгорела теневая схема «${burned.name}»!`);
+                    } else {
+                        player.cash -= fine;
+                        addLog(`${player.name} попал в УСБ (${reason}): начислен штраф ${formatMoney(fine)}.`);
+                    }
+                }
+            } else {
+                addLog(`${player.name} отправлен в УСБ (${reason}). Сауны сохранены.`);
+            }
+            checkPlayerCashState(player);
+        }
+
+        function applyChanceCard(player) {
+            if (!gameState || !player) return;
+            if (gameState.chanceDeck.length === 0) {
+                gameState.chanceDeck = shuffleChanceDeck();
+            }
+            const card = gameState.chanceDeck.shift();
+            if (!card) return;
+
+            addLog(`Карта «Кабинет Яковлева»: «${card.title}» — ${card.text}`);
+            if (typeof card.deltaCash === 'number') {
+                let amt = card.deltaCash;
+                if (amt < 0 && player.roleId === 'alena') amt = Math.round(amt * 1.5);
+                player.cash += amt;
+            }
+            if (card.addJailCard) {
+                player.jailFreeCards += 1;
+            }
+            if (card.setRat && countOwnedByType(player.id, 'department') < 2) {
+                player.tokens.ratOnMe = true;
+            }
+            if (card.setHooked && countOwnedByType(player.id, 'department') < 3) {
+                player.tokens.hookedByUsb = true;
+                player.pocketWatchBlockedRounds = 1;
+            }
+            if (typeof card.moveTo === 'number') {
+                player.pos = card.moveTo;
+                if (card.startBonus) {
+                    player.cash += card.startBonus;
+                }
+            }
+            checkPlayerCashState(player);
+        }
+
+        function resolveCellLanding(player, cell, passedStart) {
+            if (!gameState || !player || !cell) return;
+            if (passedStart && cell.type !== 'start') {
+                player.cash += 200;
+                player.roundsCompleted += 1;
+                applyRoundStartBonuses(player);
+                addLog(`${player.name} прошёл «Старт» и получил 200 тыс. ₽.`);
+            }
+
+            if (cell.type === 'start') {
+                player.cash += 200;
+                player.roundsCompleted += 1;
+                applyRoundStartBonuses(player);
+                addLog(`${player.name} остановился на «Старте» и получил 200 тыс. ₽.`);
+            } else if (cell.type === 'usb') {
+                addLog(`${player.name} проходит клетку № 10 «Проверка УСБ» как свидетель без штрафов.`);
+            } else if (cell.type === 'go_usb') {
+                sendPlayerToUsb(player, 'вызов в УСБ по клетке № 30');
+            } else if (cell.type === 'tax') {
+                if (cell.isLuxuryTax && player.roleId === 'alena') {
+                    addLog(`Алёна освобождена от элитного сбора (налог на роскошь № 36 не взимается).`);
+                } else {
+                    let tax = cell.taxAmount || 100;
+                    if (player.roleId === 'alena') tax = Math.round(tax * 1.5);
+                    player.cash -= tax;
+                    addLog(`${player.name} оплатил сбор «${cell.name}» (${formatMoney(tax)}).`);
+                    checkPlayerCashState(player);
+                }
+            } else if (cell.type === 'chance') {
+                applyChanceCard(player);
+            } else if (cell.type === 'baryga') {
+                triggerBarygaEncounterIfNeeded(player);
+            } else if (cell.type === 'property' || cell.type === 'department' || cell.type === 'specops') {
+                const ownerId = gameState.cellOwners[cell.id];
+                if (!ownerId) {
+                    gameState.pendingBuyCellId = cell.id;
+                    addLog(`${player.name} встал на свободную точку «${cell.name}» (${formatMoney(cell.price)}).`);
+                } else if (ownerId !== player.id) {
+                    const owner = gameState.players.find(p => p.id === ownerId);
+                    if (owner && !owner.eliminated) {
+                        const rent = getExactRentForCell(cell, owner, player);
+                        if (player.roleId === 'muhich' && [1, 11, 18, 24].includes(cell.id)) {
+                            addLog(`Мухич проходит «${cell.name}» по служебному проходу за 0 ₽.`);
+                            if (cell.id === 18 || cell.id === 24) {
+                                player.skipNextTurn = true;
+                                addLog(`На «${cell.name}» Мухич задерживается — следующий ход пропускается.`);
+                            }
+                        } else {
+                            if (player.roleId === 'kristina' && !player.usedKristinaRentDiscountThisRound) {
+                                player.usedKristinaRentDiscountThisRound = true;
+                            }
+                            player.cash -= rent;
+                            owner.cash += rent;
+                            addLog(`${player.name} выплатил ${owner.name} ренту ${formatMoney(rent)} за «${cell.name}».`);
+                            checkPlayerCashState(player);
+                        }
+                    }
+                }
+            }
+        }
+
+        function applyRoundStartBonuses(player) {
+            if (!gameState || !player) return;
+            syncPlayerLinksAndTokens(player);
+
+            if (player.saunas === 1) {
+                player.cash += 40;
+                addLog(`1 сауна принесла ${player.name} +40 тыс. ₽ на «Дне получки».`);
+            } else if (player.saunas === 2) {
+                player.cash += 90;
+                addLog(`2 сауны принесли ${player.name} +90 тыс. ₽ на «Дне получки».`);
+            } else if (player.saunas >= 3) {
+                player.cash += 160;
+                addLog(`${player.saunas} саун принесли ${player.name} +160 тыс. ₽ на «Дне получки».`);
+            }
+
+            if (player.cafeshkaCount > 0) {
+                const perCafe = countOwnedByType(player.id, 'specops') >= 2 ? 100 : 50;
+                let cafeGain = player.cafeshkaCount * perCafe;
+                if (player.tokens.ratOnMe) cafeGain = Math.ceil(cafeGain * 0.5);
+                player.cash += cafeGain;
+                addLog(`«Кафешки» (${player.cafeshkaCount}) принесли ${player.name} +${formatMoney(cafeGain)}.`);
+            }
+
+            if (player.roleId === 'alena') {
+                const fullSectors = Object.keys(SECTORS).filter(sec => hasFullSector(player.id, sec));
+                if (fullSectors.length > 0) {
+                    const bonus = fullSectors.length * 100;
+                    player.cash += bonus;
+                    addLog(`Алёна получила +${formatMoney(bonus)} за полные цветовые сектора.`);
+                }
+            }
+
+            if (player.activeLinks.includes('Общепит и сбыт') && player.tokens.shaurma > 0) {
+                player.cash += 35;
+                addLog(`Связка «Общепит и сбыт» принесла ${player.name} +35 тыс. ₽.`);
+            }
+            if (player.activeLinks.includes('Гламур и сервис')) {
+                player.cash += 30;
+                addLog(`Связка «Гламур и сервис» принесла ${player.name} +30 тыс. ₽.`);
+            }
+            if (player.activeLinks.includes('Элитный офшор')) {
+                player.cash += 100;
+                addLog(`Связка «Элитный офшор» принесла ${player.name} +100 тыс. ₽.`);
+            }
+            if (player.activeLinks.includes('Стройподряд и схема')) {
+                player.cash += 45;
+                addLog(`Связка «Стройподряд и схема» принесла ${player.name} +45 тыс. ₽.`);
+            }
+
+            const shadowGain = player.shadowSchemes.reduce((acc, sc) => acc + (sc.income || 0), 0);
+            if (shadowGain > 0) {
+                const effShadow = player.tokens.ratOnMe ? Math.ceil(shadowGain * 0.5) : shadowGain;
+                player.cash += effShadow;
+                addLog(`Теневые схемы принесли ${player.name} +${formatMoney(effShadow)}.`);
+            }
+
+            if (player.blockedLinkRounds > 0) player.blockedLinkRounds -= 1;
+            if (player.pocketWatchBlockedRounds > 0) player.pocketWatchBlockedRounds -= 1;
+            player.usedKristinaRentDiscountThisRound = false;
+            player.usedDeptTokenDiscountThisRound = false;
+            player.usedDeptRatClearThisRound = false;
+            player.usedSpecOpsActionThisRound = false;
+            player.usedSpecOpsShadowStealThisRound = false;
+            player.usedSauna1BonusThisRound = false;
+            player.usedGrishaSaunaRerollThisRound = false;
+            player.usedRybkinaDeptJumpThisRound = false;
+            player.usedYakovlevCabinetRerollThisRound = false;
+
+            if (gameState.barygaSealedCells.length > 0 && gameState.turnIndex === 0) {
+                gameState.barygaSealedCells = [];
+                addLog(`Срок опечатки точек Барыгой истёк.`);
+            }
+        }
+
+        function movePlayerSteps(player, steps, allowBarygaEncounter = true) {
+            if (!gameState || !player) return;
+            const startPos = player.pos;
+            let passedStart = false;
+            let passedBaryga = false;
+
+            for (let i = 1; i <= steps; i++) {
+                const nextPos = (startPos + i) % BOARD_CELLS.length;
+                if (nextPos === 0 && i < steps) {
+                    passedStart = true;
+                }
+                if (nextPos === gameState.barygaPos) {
+                    passedBaryga = true;
+                }
+            }
+
+            const finalPos = (startPos + steps) % BOARD_CELLS.length;
+            player.pos = finalPos;
+            if (passedBaryga) {
+                player.passedBarygaThisTurn = true;
+                if (player.activeLinks.includes('Ночной перехват')) {
+                    player.cash += 50;
+                    addLog(`Связка «Ночной перехват» принесла ${player.name} +50 тыс. ₽ при проходе мимо Барыги.`);
+                }
+            }
+
+            addLog(`${player.name} прошёл ${steps} кл. (#${startPos} → #${finalPos}: ${BOARD_CELLS[finalPos].name}).`);
+            resolveCellLanding(player, BOARD_CELLS[finalPos], passedStart);
+            if (allowBarygaEncounter && finalPos !== gameState.barygaPos) {
+                triggerBarygaEncounterIfNeeded(player);
+            }
+        }
+
+        function nudgeRybkina(delta) {
+            if (!isLocalTurnAllowed() || !gameState || gameState.hasRolled) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || player.roleId !== 'rybkina' || player.usedRybkinaNudgeThisTurn || player.inUsb) return;
+
+            const oldPos = player.pos;
+            const newPos = (oldPos + delta + BOARD_CELLS.length) % BOARD_CELLS.length;
+            player.pos = newPos;
+            player.usedRybkinaNudgeThisTurn = true;
+            if (newPos === gameState.barygaPos) {
+                player.passedBarygaThisTurn = true;
+            }
+            addLog(`Рыбкина сдвинулась на ${delta > 0 ? '+1' : '-1'} кл. (#${oldPos} → #${newPos}: ${BOARD_CELLS[newPos].name}).`);
+            resolveCellLanding(player, BOARD_CELLS[newPos], oldPos > 30 && newPos === 0 && delta > 0);
+            triggerBarygaEncounterIfNeeded(player);
+            commitGameAction();
+        }
+
+        function applyDoubleEffects(player, dieFace) {
+            if (!gameState || !player) return;
+            if (dieFace === 1) {
+                if (player.roleId === 'grisha') {
+                    player.skipNextTurn = true;
+                    gameState.hasRolled = true;
+                    addLog(`Гриша выбросил дубль 1-1 — вызов «на ковёр» (следующий ход пропускается, повторного броска нет).`);
+                } else {
+                    player.cash += 50;
+                    addLog(`Дубль 1-1 приносит ${player.name} +50 тыс. ₽ оперативных.`);
+                }
+            } else if (dieFace === 2) {
+                if (player.tokens.gastarbaitery < 3) {
+                    player.tokens.gastarbaitery += 1;
+                    addLog(`Дубль 2-2: ${player.name} получает жетон «Гастарбайтеры».`);
+                } else {
+                    player.cash += 20;
+                    addLog(`Дубль 2-2: лимит «Гастарбайтеров» — ${player.name} получает +20 тыс. ₽.`);
+                }
+                if (player.roleId === 'rybkina') {
+                    player.usedRybkinaNudgeThisTurn = false;
+                }
+            } else if (dieFace === 3) {
+                if (player.roleId === 'nika' && gameState.chanceDeck.length >= 2) {
+                    const c1 = gameState.chanceDeck.shift();
+                    const c2 = gameState.chanceDeck.shift();
+                    player.pendingShadowChoices = [c1, c2];
+                    addLog(`Дубль 3-3: Ника выбирает 1 из 2 карт «Кабинета Яковлева» («${c1.title}» или «${c2.title}»).`);
+                } else {
+                    applyChanceCard(player);
+                }
+            } else if (dieFace === 4) {
+                const hasBrownOrPink = getPlayerOwnedCells(player.id).some(c => c.sector === 'brown' || c.sector === 'pink');
+                if (hasBrownOrPink) {
+                    player.tokens.ratOnMe = true;
+                    addLog(`Дубль 4-4: на точке Коричневого/Розового сектора у ${player.name} активирована «Крыса».`);
+                }
+                if (player.roleId === 'kristina') {
+                    player.kristinaNextShadowDiscount = true;
+                    addLog(`Кристина получает скидку −50% на следующую теневую карту.`);
+                }
+            } else if (dieFace === 5) {
+                player.tokens.prostitute += 1;
+                if (player.roleId === 'alena') {
+                    player.cash += 100;
+                    addLog(`Дубль 5-5: Алёна получает жетон «Шлюха» и +100 тыс. ₽.`);
+                } else if (player.roleId === 'kristina') {
+                    const clubs = getPlayerOwnedCells(player.id).filter(c => c.sector === 'yellow').length;
+                    const clubBonus = clubs * 50;
+                    player.cash += clubBonus;
+                    addLog(`Дубль 5-5: Кристина получает жетон «Шлюха»${clubBonus > 0 ? ` и +${clubBonus} тыс. ₽ за клубы` : ''}.`);
+                } else {
+                    addLog(`Дубль 5-5: ${player.name} получает жетон «Шлюха».`);
+                }
+            } else if (dieFace === 6) {
+                const target = gameState.players.find(p => !p.eliminated && p.id !== player.id);
+                if (target) {
+                    sendPlayerToUsb(target, `приказ по дублю 6-6 от ${player.name}`);
+                }
+            }
+        }
+
+        function handleRollDice() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || player.eliminated) return;
+            if (gameState.rescuePlayerId) return;
+
+            if (player.skipNextTurn && !gameState.hasRolled) {
+                player.skipNextTurn = false;
+                gameState.hasRolled = true;
+                addLog(`${player.name} пропускает этот ход по предыдущему взысканию.`);
+                commitGameAction();
+                return;
+            }
+
+            if (gameState.hasRolled && !player.inUsb) return;
+
+            const d1 = Math.floor(Math.random() * 6) + 1;
+            const d2 = Math.floor(Math.random() * 6) + 1;
+            const sum = d1 + d2;
+            const isDouble = d1 === d2;
+            gameState.lastDice = [d1, d2];
+
+            if (player.inUsb) {
+                if (isDouble) {
+                    player.inUsb = false;
+                    player.usbTurns = 0;
+                    player.doublesCount = 0;
+                    gameState.hasRolled = true;
+                    addLog(`${player.name} выбросил дубль (${d1}-${d2}) и вышел из УСБ!`);
+                    moveBarygaSteps(sum);
+                    movePlayerSteps(player, sum, true);
+                } else {
+                    player.usbTurns += 1;
+                    if (player.usbTurns >= 3) {
+                        const bail = player.roleId === 'grisha' ? 100 : (player.roleId === 'rybkina' ? 30 : 50);
+                        player.cash -= bail;
+                        player.inUsb = false;
+                        player.usbTurns = 0;
+                        gameState.hasRolled = true;
+                        addLog(`${player.name} на 3-й попытке в УСБ не выбросил дубль — оплатил выход ${formatMoney(bail)} и пошёл на ${sum} кл.`);
+                        movePlayerSteps(player, sum, true);
+                        checkPlayerCashState(player);
+                    } else {
+                        gameState.hasRolled = true;
+                        addLog(`${player.name} в УСБ выбросил ${d1}-${d2} (попытка ${player.usbTurns}/3) — остаётся в УСБ.`);
+                    }
+                }
+                commitGameAction();
+                return;
+            }
+
+            if (isDouble) {
+                player.doublesCount += 1;
+                if (player.doublesCount >= 3) {
+                    player.doublesCount = 0;
+                    sendPlayerToUsb(player, '3-й дубль подряд');
+                    commitGameAction();
+                    return;
+                }
+                addLog(`${player.name} выбросил дубль ${d1}-${d2} (#${player.doublesCount}) — фишка на месте, шагает Барыга на ${sum} кл. и даётся переброс.`);
+                moveBarygaSteps(sum);
+                applyDoubleEffects(player, d1);
+                if (player.roleId === 'grisha' && d1 === 1) {
+                    gameState.hasRolled = true;
+                } else {
+                    gameState.hasRolled = false;
+                }
+                checkPlayerCashState(player);
+                commitGameAction();
+                return;
+            }
+
+            player.doublesCount = 0;
+            gameState.hasRolled = true;
+            addLog(`${player.name} бросил кубики: ${d1} + ${d2} = ${sum}.`);
+            movePlayerSteps(player, sum, true);
+
+            if (sum === 7 || sum === 11) {
+                if (sum === 11) {
+                    player.tokens.shaurma += 1;
+                    addLog(`За сумму 11 ${player.name} получает жетон «Шаурма».`);
+                    if (player.roleId === 'muhich') {
+                        applyChanceCard(player);
+                    }
+                } else if (sum === 7 && player.saunas >= 2 && countOwnedByType(player.id, 'department') === 0) {
+                    const checkDie = Math.floor(Math.random() * 6) + 1;
+                    if (checkDie <= 2) {
+                        if (player.roleId === 'grisha' && !player.usedGrishaSaunaRerollThisRound) {
+                            player.usedGrishaSaunaRerollThisRound = true;
+                            const reroll = Math.floor(Math.random() * 6) + 1;
+                            addLog(`Гриша перебросил кубик проверки саун (${checkDie} → ${reroll}) и удержал сауны!`);
+                        } else {
+                            player.cash -= 40;
+                            addLog(`Проверка саун на сумме 7 (кубик ${checkDie}) принесла штраф 40 тыс. ₽.`);
+                            checkPlayerCashState(player);
+                        }
+                    }
+                }
+            }
+
+            commitGameAction();
+        }
+
+        function payUsbBail() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || !player.inUsb) return;
+            if ((player.roleId === 'grisha' || player.roleId === 'rybkina') && player.usbTurns === 0) {
+                addLog(`${player.name} не может внести отступные в 1-й ход пребывания в УСБ.`);
+                commitGameAction();
+                return;
+            }
+            const bail = player.roleId === 'grisha' ? 100 : (player.roleId === 'rybkina' ? 30 : 50);
+            if (player.cash < bail) {
+                addLog(`Не хватает ${formatMoney(bail)} на выход из УСБ.`);
+                commitGameAction();
+                return;
+            }
+            player.cash -= bail;
+            player.inUsb = false;
+            player.usbTurns = 0;
+            addLog(`${player.name} оплатил выход из УСБ (${formatMoney(bail)}).`);
+            commitGameAction();
+        }
+
+        function useJailFreeCard() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || !player.inUsb || player.jailFreeCards <= 0) return;
+            player.jailFreeCards -= 1;
+            player.inUsb = false;
+            player.usbTurns = 0;
+            gameState.chanceDeck.push({ title: 'Карта «Выход из УСБ»', text: 'Возвращена в колоду.', addJailCard: true });
+            addLog(`${player.name} использовал карту «Выход из УСБ» и вышел на свободу.`);
+            commitGameAction();
+        }
+
+        function useScheme03ForUsb() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || !player.inUsb) return;
+            const idx = player.shadowSchemes.findIndex(s => s.usbShield && !s.usedActive);
+            if (idx === -1) return;
+            player.shadowSchemes[idx].usedActive = true;
+            player.inUsb = false;
+            player.usbTurns = 0;
+            addLog(`${player.name} задействовал схему «Звонок „решале“» и вышел из УСБ.`);
+            commitGameAction();
+        }
+
+        function chooseNikaCardOption(choiceIdx) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || !Array.isArray(player.pendingShadowChoices) || player.pendingShadowChoices.length === 0) return;
+            const chosen = player.pendingShadowChoices[choiceIdx] || player.pendingShadowChoices[0];
+            player.pendingShadowChoices = [];
+            if (!chosen) return;
+            addLog(`Ника выбрала карту «${chosen.title}» — ${chosen.text}`);
+            if (typeof chosen.deltaCash === 'number') player.cash += chosen.deltaCash;
+            if (chosen.addJailCard) player.jailFreeCards += 1;
+            if (chosen.setRat) player.tokens.ratOnMe = true;
+            if (chosen.setHooked) player.tokens.hookedByUsb = true;
+            if (typeof chosen.moveTo === 'number') {
+                player.pos = chosen.moveTo;
+                if (chosen.startBonus) player.cash += chosen.startBonus;
+            }
+            checkPlayerCashState(player);
+            commitGameAction();
+        }
+
+        function unlockShadowTierDirect(targetTier) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || targetTier <= player.shadowTier || targetTier > 4) return;
+
+            let cost = targetTier === 1 ? 100 : (targetTier === 2 ? 200 : (targetTier === 3 ? 350 : 500));
+            if (targetTier === 3 && player.roleId === 'kristina') cost = 450;
+
+            if (player.cash < cost) {
+                addLog(`Не хватает ${formatMoney(cost)} для открытия ${targetTier} уровня теневого бизнеса.`);
+                commitGameAction();
+                return;
+            }
+            player.cash -= cost;
+            player.shadowTier = targetTier;
+            syncPlayerLinksAndTokens(player);
+            addLog(`${player.name} открыл ${SHADOW_TIERS[targetTier].name} за ${formatMoney(cost)}.`);
+            commitGameAction();
+        }
+
+        function buyShadowSchemeCard(uid) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player) return;
+
+            const deckIdx = gameState.shadowDeck.findIndex(c => c.uid === uid);
+            if (deckIdx === -1) return;
+            const card = gameState.shadowDeck[deckIdx];
+
+            const tierInfo = SHADOW_TIERS[player.shadowTier] || SHADOW_TIERS[0];
+            if (player.shadowTier < card.tier) {
+                addLog(`Нужен минимум ${card.tier} уровень теневого бизнеса для схемы «${card.name}».`);
+                commitGameAction();
+                return;
+            }
+            if (card.cost > tierInfo.maxCardCost) {
+                addLog(`Цена схемы «${card.name}» (${formatMoney(card.cost)}) превышает лимит ${tierInfo.name} (${formatMoney(tierInfo.maxCardCost)}).`);
+                commitGameAction();
+                return;
+            }
+            if (player.shadowSchemes.length >= tierInfo.maxCards) {
+                addLog(`Достигнут лимит схем (${tierInfo.maxCards}) для ${tierInfo.name}.`);
+                commitGameAction();
+                return;
+            }
+
+            let price = card.cost;
+            if (player.kristinaNextShadowDiscount) {
+                price = Math.round(price * 0.5);
+                player.kristinaNextShadowDiscount = false;
+            } else if (countOwnedByType(player.id, 'department') >= 2) {
+                price = Math.round(price * 0.9);
+            }
+
+            if (player.cash < price) {
+                addLog(`Не хватает ${formatMoney(price)} на схему «${card.name}».`);
+                commitGameAction();
+                return;
+            }
+
+            gameState.shadowDeck.splice(deckIdx, 1);
+            player.cash -= price;
+            player.shadowSchemes.push({ ...card, active: true, usedActive: false });
+            syncPlayerLinksAndTokens(player);
+            addLog(`${player.name} взял схему «${card.name}» (${card.code}) за ${formatMoney(price)}.`);
+            commitGameAction();
+        }
+
+        function activateOwnedShadowCard(uid) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player) return;
+            const scheme = player.shadowSchemes.find(s => s.uid === uid);
+            if (!scheme || scheme.usedActive) return;
+
+            scheme.usedActive = true;
+            if (scheme.instantCash) {
+                player.cash += scheme.instantCash;
+                addLog(`${player.name} активировал схему «${scheme.name}» и получил ${formatMoney(scheme.instantCash)}.`);
+            } else if (scheme.customMoveSteps) {
+                movePlayerSteps(player, scheme.customMoveSteps, true);
+                addLog(`${player.name} применил «Инсайд с Рублёвки» (+${scheme.customMoveSteps} кл.).`);
+            } else {
+                addLog(`${player.name} привёл в действие схему «${scheme.name}».`);
+            }
+            checkPlayerCashState(player);
+            commitGameAction();
+        }
+
+        function exchangeDeptForSaunas(deptCellId, desiredSaunas, cashbackAmount = 0) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            const cell = BOARD_CELLS.find(c => c.id === deptCellId);
+            if (!player || !cell || gameState.cellOwners[deptCellId] !== player.id) return;
+
+            const activeDepts = countOwnedByType(player.id, 'department');
+            if (player.roleId === 'yakovlev' && activeDepts <= 1) {
+                addLog(`Яковлев обязан сохранять минимум 1 Служебный отдел.`);
+                commitGameAction();
+                return;
+            }
+            if (player.tokens.hookedByUsb && countOwnedByType(player.id, 'department') < 3) {
+                addLog(`Обмен отдела заблокирован жетоном «УСБ: На крючке».`);
+                commitGameAction();
+                return;
+            }
+
+            const maxAllowedSaunas = player.roleId === 'kristina' ? 4 : 3;
+            const targetTotalSaunas = Math.min(maxAllowedSaunas, player.saunas + desiredSaunas);
+            if (targetTotalSaunas <= player.saunas) {
+                addLog(`Недостаточно условий или лимита для открытия новых саун.`);
+                commitGameAction();
+                return;
+            }
+
+            delete gameState.cellOwners[deptCellId];
+            gameState.cellStars[deptCellId] = 0;
+            const added = targetTotalSaunas - player.saunas;
+            player.saunas = targetTotalSaunas;
+            if (cashbackAmount > 0) {
+                player.cash += cashbackAmount;
+            }
+            syncPlayerLinksAndTokens(player);
+            addLog(`${player.name} обменял «${cell.name}» на +${added} саун (всего саун: ${player.saunas})${cashbackAmount > 0 ? `, кэшбэк +${formatMoney(cashbackAmount)}` : ''}.`);
+            commitGameAction();
+        }
+
+        function buyExtraSauna() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player) return;
+            const maxSaunas = player.roleId === 'kristina' ? 4 : 3;
+            if (player.saunas >= maxSaunas) {
+                addLog(`Достигнут предел саун (${maxSaunas}).`);
+                commitGameAction();
+                return;
+            }
+            const cost = 50;
+            if (player.cash < cost) {
+                addLog(`Не хватает ${formatMoney(cost)} на добор сауны.`);
+                commitGameAction();
+                return;
+            }
+            player.cash -= cost;
+            player.saunas += 1;
+            addLog(`${player.name} доукомплектовал сауну за ${formatMoney(cost)} (всего саун: ${player.saunas}).`);
+            commitGameAction();
+        }
+
+        function redeemDeptFromSaunas() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            const freeDept = BOARD_CELLS.find(c => c.type === 'department' && !gameState.cellOwners[c.id]);
+            if (!player || !freeDept || player.saunas < 3) return;
+            const cost = 50;
+            if (player.cash < cost) {
+                addLog(`Не хватает ${formatMoney(cost)} на обратный выкуп отдела.`);
+                commitGameAction();
+                return;
+            }
+            player.cash -= cost;
+            player.saunas -= 3;
+            gameState.cellOwners[freeDept.id] = player.id;
+            syncPlayerLinksAndTokens(player);
+            addLog(`${player.name} вернул «${freeDept.name}» за 3 сауны + ${formatMoney(cost)}.`);
+            commitGameAction();
+        }
+
+        function useSauna1Bonus(actionKind) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || player.saunas < 1 || player.usedSauna1BonusThisRound) return;
+            player.usedSauna1BonusThisRound = true;
+            if (actionKind === 'clear_rat') {
+                player.tokens.ratOnMe = false;
+                addLog(`${player.name} использовал бонус 1-й сауны и снял «Крысу».`);
+            } else {
+                moveBarygaSteps(1);
+                addLog(`${player.name} использовал бонус 1-й сауны и сдвинул Барыгу на 1 клетку.`);
+            }
+            commitGameAction();
+        }
+
+        function useRybkinaDeptJump() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || player.roleId !== 'rybkina' || player.usedRybkinaDeptJumpThisRound) return;
+            const myDepts = getPlayerOwnedCells(player.id).filter(c => c.type === 'department');
+            if (myDepts.length < 2) return;
+            const targetDept = myDepts.find(d => d.id !== player.pos) || myDepts[0];
+            player.pos = targetDept.id;
+            player.usedRybkinaDeptJumpThisRound = true;
+            addLog(`Рыбкина бесплатно перешла в свой Служебный отдел «${targetDept.name}» (0 ₽).`);
+            commitGameAction();
+        }
+
+        function useNikaSwapOnce() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || player.roleId !== 'nika' || player.usedNikaSwapOnce) return;
+            player.usedNikaSwapOnce = true;
+            if (player.shadowSchemes.length > 0 && gameState.shadowDeck.length > 0) {
+                const oldCard = player.shadowSchemes.pop();
+                const newCard = gameState.shadowDeck.shift();
+                gameState.shadowDeck.push(oldCard);
+                player.shadowSchemes.push({ ...newCard, active: true, usedActive: false });
+                addLog(`Ника использовала спецспособность (1 раз за игру) и обменяла схему «${oldCard.name}» на «${newCard.name}».`);
+            } else {
+                applyChanceCard(player);
+                addLog(`Ника использовала спецспособность (1 раз за игру) и перетянула карту события.`);
+            }
+            commitGameAction();
+        }
+
+        function useYakovlevCabinetReroll() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || player.roleId !== 'yakovlev' || player.usedYakovlevCabinetRerollThisRound) return;
+            player.usedYakovlevCabinetRerollThisRound = true;
+            applyChanceCard(player);
+            commitGameAction();
+        }
+
+        function buyResourceToken(tokenKey) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player) return;
+            const matrix = TOKEN_MATRIX[player.roleId] || TOKEN_MATRIX.nika;
+            let cost = matrix[tokenKey] ?? 50;
+
+            if ((tokenKey === 'shaurma' || tokenKey === 'gastarbaitery') && countOwnedByType(player.id, 'department') >= 1 && !player.usedDeptTokenDiscountThisRound) {
+                player.usedDeptTokenDiscountThisRound = true;
+                cost = Math.round(cost * 0.5);
+            }
+
+            if (player.cash < cost) {
+                addLog(`Не хватает ${formatMoney(cost)} на жетон/актив.`);
+                commitGameAction();
+                return;
+            }
+
+            player.cash -= cost;
+            if (tokenKey === 'shaurma') {
+                player.tokens.shaurma += 1;
+                addLog(`${player.name} приобрёл жетон «Шаурма» за ${formatMoney(cost)}.`);
+            } else if (tokenKey === 'gastarbaitery') {
+                if (player.tokens.gastarbaitery >= 3) {
+                    player.cash += cost;
+                    addLog(`Лимит жетонов «Гастарбайтеры» (3 шт.) уже достигнут.`);
+                    commitGameAction();
+                    return;
+                }
+                player.tokens.gastarbaitery += 1;
+                addLog(`${player.name} приобрёл жетон «Гастарбайтеры» за ${formatMoney(cost)}.`);
+            } else if (tokenKey === 'uchastkovy') {
+                player.tokens.uchastkovy += 1;
+                addLog(`${player.name} приобрёл жетон «Подмазанный участковый» за ${formatMoney(cost)}.`);
+            } else if (tokenKey === 'prostitute') {
+                player.tokens.prostitute += 1;
+                addLog(`${player.name} приобрёл жетон «Шлюха» за ${formatMoney(cost)}.`);
+            } else if (tokenKey === 'hostel') {
+                player.hasHostel = true;
+                addLog(`${player.name} оформил долю «Хостела» за ${formatMoney(cost)}.`);
+            }
+
+            syncPlayerLinksAndTokens(player);
+            commitGameAction();
+        }
+
+        function activateUchastkovyToken() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || player.tokens.uchastkovy <= 0) return;
+            if (player.pocketWatchBlockedRounds > 0) {
+                addLog(`«Подмазанный участковый» заблокирован на 1 круг после «Кабинета Яковлева».`);
+                commitGameAction();
+                return;
+            }
+            player.tokens.uchastkovy -= 1;
+            let payout = 60;
+            if (countOwnedByType(player.id, 'department') >= 2) payout += 25;
+            if (player.activeLinks.includes('Карманный надзор')) payout += 50;
+            player.cash += payout;
+            addLog(`${player.name} задействовал «Подмазанного участкового» и получил +${formatMoney(payout)}.`);
+            commitGameAction();
+        }
+
+        function useDeptRatClear() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || countOwnedByType(player.id, 'department') < 2 || player.usedDeptRatClearThisRound) return;
+            player.usedDeptRatClearThisRound = true;
+            player.tokens.ratOnMe = false;
+            addLog(`${player.name} зачистил «Крысу» силами 2 Служебных отделов.`);
+            commitGameAction();
+        }
+
+        function useDeptBlockLink(targetPlayerId) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            const target = gameState.players.find(p => p.id === targetPlayerId && !p.eliminated);
+            if (!player || !target || countOwnedByType(player.id, 'department') < 3) return;
+            target.blockedLinkRounds = 1;
+            addLog(`${player.name} заблокировал 2-цветную связку у «${target.name}» на 1 круг.`);
+            commitGameAction();
+        }
+
+        function useSpecOpsAction(kind, targetPlayerId) {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            const player = gameState.players[gameState.turnIndex];
+            if (!player || countOwnedByType(player.id, 'specops') < 1) return;
+
+            if (kind === 'move_baryga_1') {
+                if (player.usedSpecOpsActionThisRound) return;
+                player.usedSpecOpsActionThisRound = true;
+                moveBarygaSteps(1);
+                addLog(`${player.name} сдвинул Барыгу на 1 клетку силами Спецслужбы.`);
+            } else if (kind === 'plant_rat') {
+                if (player.usedSpecOpsActionThisRound) return;
+                const target = gameState.players.find(p => p.id === targetPlayerId && !p.eliminated && p.id !== player.id);
+                if (!target) return;
+                player.usedSpecOpsActionThisRound = true;
+                target.tokens.ratOnMe = true;
+                addLog(`${player.name} подбросил «Крысу» игроку «${target.name}» силами Спецслужбы.`);
+            } else if (kind === 'steal_gastar') {
+                if (player.usedSpecOpsShadowStealThisRound) return;
+                const donor = gameState.players.find(p => !p.eliminated && p.id !== player.id && p.tokens.gastarbaitery > 0);
+                if (!donor || player.tokens.gastarbaitery >= 3) return;
+                player.usedSpecOpsShadowStealThisRound = true;
+                donor.tokens.gastarbaitery -= 1;
+                player.tokens.gastarbaitery += 1;
+                addLog(`${player.name} переманил жетон «Гастарбайтеры» у «${donor.name}».`);
+            }
+            commitGameAction();
+        }
+
+        function calculateNetWorth(player) {
+            if (!gameState || !player) return 0;
+            const ownedValue = getPlayerOwnedCells(player.id).reduce((sum, c) => sum + (c.price || 0), 0);
+            const shadowValue = player.shadowSchemes.reduce((sum, s) => sum + (s.cost || 0), 0);
+            return player.cash + ownedValue + shadowValue + player.saunas * 50;
+        }
+
+        function checkPlayerCashState(player) {
+            if (!gameState || !player || player.eliminated) return;
+            if (player.cash < 0) {
+                gameState.rescuePlayerId = player.id;
+                addLog(`ВНИМАНИЕ: у ${player.name} отрицательный баланс (${formatMoney(player.cash)}). Заложите активы или примите антикризисное спасение.`);
+            }
+        }
+
+        function lendRescueMoney() {
+            if (!gameState || !gameState.rescuePlayerId) return;
+            const debtor = gameState.players.find(p => p.id === gameState.rescuePlayerId);
+            if (!debtor) return;
+            const needed = Math.abs(debtor.cash) + 50;
+            debtor.cash += needed;
+            gameState.rescuePlayerId = null;
+            addLog(`Оперативный фонд выделил ${debtor.name} антикризисную ссуду +${formatMoney(needed)}.`);
+            commitGameAction();
+        }
+
+        function eliminatePlayer() {
+            if (!gameState || !gameState.rescuePlayerId) return;
+            const debtor = gameState.players.find(p => p.id === gameState.rescuePlayerId);
+            if (!debtor) return;
+            debtor.eliminated = true;
+            Object.keys(gameState.cellOwners).forEach(cellId => {
+                if (gameState.cellOwners[cellId] === debtor.id) {
+                    delete gameState.cellOwners[cellId];
+                    delete gameState.cellStars[cellId];
+                    delete gameState.cellMortgaged[cellId];
+                }
+            });
+            gameState.rescuePlayerId = null;
+            addLog(`${debtor.name} выбыл из дела № 77/40-ОМ по неплатёжеспособности; его точки перешли в резерв.`);
+            checkVictoryCondition();
+            commitGameAction();
+        }
+
+        function checkVictoryCondition() {
+            if (!gameState) return;
+            const alive = gameState.players.filter(p => !p.eliminated);
+            if (alive.length === 1) {
+                addLog(`ПОБЕДА! Единственный оставшийся в строю оперативник — ${alive[0].name} (${alive[0].roleName})!`);
+            }
+        }
+
+        function endTurn() {
+            if (!isLocalTurnAllowed() || !gameState) return;
+            if (gameState.rescuePlayerId) {
+                addLog(`Сначала закройте кассовый разрыв у должника.`);
+                commitGameAction();
+                return;
+            }
+            const current = gameState.players[gameState.turnIndex];
+            if (current && !current.eliminated && !current.skipNextTurn && !gameState.hasRolled) {
+                addLog(`Сначала сделайте бросок кубиков за игрока ${current.name}.`);
+                commitGameAction();
+                return;
+            }
+
+            const total = gameState.players.length;
+            let nextIdx = (gameState.turnIndex + 1) % total;
+            let loops = 0;
+            while (loops < total) {
+                if (nextIdx === 0) {
+                    gameState.round += 1;
+                }
+                const candidate = gameState.players[nextIdx];
+                if (candidate && !candidate.eliminated) {
+                    gameState.turnIndex = nextIdx;
+                    gameState.hasRolled = false;
+                    gameState.pendingBuyCellId = null;
+                    gameState.pendingAuctionCellId = null;
+                    gameState.pendingBarygaChoice = null;
+                    candidate.usedRybkinaNudgeThisTurn = false;
+                    candidate.passedBarygaThisTurn = false;
+                    addLog(`Ход переходит к игроку ${candidate.name} (${candidate.roleName}).`);
+                    commitGameAction();
+                    return;
+                }
+                nextIdx = (nextIdx + 1) % total;
+                loops += 1;
+            }
+        }
+
+        function getGridCoordForCell(id) {
+            if (id >= 0 && id <= 10) {
+                return { row: 11, col: 11 - id };
+            }
+            if (id >= 11 && id <= 19) {
+                return { row: 11 - (id - 10), col: 1 };
+            }
+            if (id >= 20 && id <= 30) {
+                return { row: 1, col: 1 + (id - 20) };
+            }
+            return { row: 1 + (id - 30), col: 11 };
+        }
+
+        function renderDieSvgPips(value) {
+            const patterns = {
+                1: [5],
+                2: [1, 9],
+                3: [1, 5, 9],
+                4: [1, 3, 7, 9],
+                5: [1, 3, 5, 7, 9],
+                6: [1, 3, 4, 6, 7, 9]
+            };
+            const activePips = patterns[value] || patterns[1];
+            const isSpecialRed = value === 1 || value === 6;
+            let html = '';
+            for (let cell = 1; cell <= 9; cell++) {
+                if (activePips.includes(cell)) {
+                    html += `<span class="pip-dot ${isSpecialRed ? 'red-pip' : ''}"></span>`;
+                } else {
+                    html += `<span></span>`;
+                }
+            }
+            return html;
+        }
+
+        function openCellModal(cellId) {
+            if (!gameState) return;
+            selectedInspectorCellId = cellId;
+            const cell = BOARD_CELLS.find(c => c.id === cellId);
+            if (!cell) return;
+
+            const modal = document.getElementById('cell-modal');
+            const metaEl = document.getElementById('cell-modal-meta');
+            const titleEl = document.getElementById('cell-modal-title');
+            const bodyEl = document.getElementById('cell-modal-body');
+            const actionsEl = document.getElementById('cell-modal-actions');
+
+            const sectorObj = cell.sector ? SECTORS[cell.sector] : null;
+            metaEl.textContent = `Клетка #${cell.id} • ${sectorObj ? `Сектор «${sectorObj.name}»` : cell.type.toUpperCase()}`;
+            titleEl.textContent = cell.name;
+
+            const ownerId = gameState.cellOwners[cell.id];
+            const owner = ownerId ? gameState.players.find(p => p.id === ownerId) : null;
+            const stars = gameState.cellStars[cell.id] || 0;
+            const isMortgaged = Boolean(gameState.cellMortgaged[cell.id]);
+            const isSealed = gameState.barygaSealedCells.includes(cell.id);
+            const activePlayer = gameState.players[gameState.turnIndex];
+
+            let bodyHtml = '';
+            if (cell.price) {
+                bodyHtml += `<div><strong>Стоимость:</strong> ${formatMoney(cell.price)}</div>`;
+            }
+            if (Array.isArray(cell.rents)) {
+                bodyHtml += `<div><strong>Рента (0★–4★★★★):</strong> ${cell.rents.map(r => `${r}т`).join(' / ')}</div>`;
+            } else if (cell.rentBase) {
+                bodyHtml += `<div><strong>Базовый доход:</strong> ${formatMoney(cell.rentBase)}</div>`;
+            }
+            bodyHtml += `<div><strong>Владелец:</strong> ${owner ? `${owner.name} (${owner.roleName})` : 'Свободно'}</div>`;
+            if (owner) {
+                bodyHtml += `<div><strong>Звёзды:</strong> ${stars > 0 ? '★'.repeat(stars) : '0★'} ${isMortgaged ? '• <span class="text-red-800 font-bold">Заложена</span>' : ''} ${isSealed ? '• <span class="text-red-800 font-bold">Опечатана</span>' : ''}</div>`;
+                bodyHtml += `<div><strong>Текущая рента для дежурного:</strong> ${formatMoney(getExactRentForCell(cell, owner, activePlayer))}</div>`;
+            }
+            bodyEl.innerHTML = bodyHtml;
+
+            let actHtml = '';
+            if (owner && activePlayer && owner.id === activePlayer.id && isLocalTurnAllowed()) {
+                if (cell.type === 'property') {
+                    const upg = getStarUpgradeCostAndCheck(activePlayer, cell);
+                    actHtml += `<button type="button" onclick="upgradeStar(${cell.id}); renderCellModalActions(${cell.id});" ${!upg.canUpgrade ? 'disabled' : ''} class="btn-archive px-3 py-1.5 text-xs bg-[#1f5c39] text-white">★ Прокачать (${upg.canUpgrade ? formatMoney(upg.cost) : '—'})</button>`;
+                }
+                if (cell.type === 'department') {
+                    const allowed = activePlayer.roleId === 'kristina' ? 4 : 3;
+                    if (activePlayer.saunas < allowed) {
+                        actHtml += `<button type="button" onclick="exchangeDeptForSaunas(${cell.id}, 1, 100); closeCellModal();" class="btn-archive px-3 py-1.5 text-xs bg-[#b45309] text-white">♨ В 1 сауну (+100т)</button>`;
+                        actHtml += `<button type="button" onclick="exchangeDeptForSaunas(${cell.id}, 2, 0); closeCellModal();" class="btn-archive px-3 py-1.5 text-xs bg-[#9a3412] text-white">♨ В +2 сауны</button>`;
+                    }
+                }
+                const mortVal = Math.round((cell.price || 100) * 0.5);
+                const redVal = Math.round(mortVal * 1.1);
+                actHtml += `<button type="button" onclick="toggleMortgageCell(${cell.id}); closeCellModal();" class="btn-archive px-3 py-1.5 text-xs bg-[#e8dcc5] text-[#1e1b18]">${isMortgaged ? `Выкупить (${formatMoney(redVal)})` : `Заложить (+${formatMoney(mortVal)})`}</button>`;
+            }
+            actHtml += `<button type="button" onclick="closeCellModal()" class="btn-archive px-3 py-1.5 text-xs bg-[#1e1b18] text-white">Готово</button>`;
+            actionsEl.innerHTML = actHtml;
+
+            modal.classList.remove('hidden');
+        }
+
+        function renderBoard() {
+            const gridEl = document.getElementById('board-grid');
+            if (!gridEl || !gameState) return;
+
+            const active = gameState.players[gameState.turnIndex];
+            const canAct = isLocalTurnAllowed() && !gameState.rescuePlayerId;
+
+            const cellsHtml = BOARD_CELLS.map(cell => {
+                const coords = getGridCoordForCell(cell.id);
+                const isCorner = [0, 10, 20, 30].includes(cell.id);
+                const sectorObj = cell.sector ? SECTORS[cell.sector] : null;
+                const ownerId = gameState.cellOwners[cell.id];
+                const owner = ownerId ? gameState.players.find(p => p.id === ownerId) : null;
+                const stars = gameState.cellStars[cell.id] || 0;
+                const isMortgaged = Boolean(gameState.cellMortgaged[cell.id]);
+                const isSealed = gameState.barygaSealedCells.includes(cell.id);
+
+                const herePlayers = gameState.players.filter(p => !p.eliminated && p.pos === cell.id);
+                const barygaHere = gameState.barygaPos === cell.id;
+
+                return `
+                    <div onclick="openCellModal(${cell.id})"
+                         style="grid-row:${coords.row}; grid-column:${coords.col};"
+                         class="board-cell ${isCorner ? 'corner-cell' : ''} ${isMortgaged ? 'mortgaged-cell' : ''} ${isSealed ? 'sealed-cell' : ''}">
+                        <div>
+                            ${sectorObj ? `<div class="cell-color-strip" style="background:${sectorObj.color}"></div>` : ''}
+                            <div class="flex items-center justify-between gap-0.5">
+                                <span class="mono text-[8px] font-bold text-[#5c5346]">#${cell.id}</span>
+                                ${stars > 0 ? `<span class="text-[8px] font-extrabold text-[#92400e]">${stars}★</span>` : ''}
+                            </div>
+                            ${owner ? `<span class="owner-badge" style="background:${ROLES.find(r=>r.id===owner.roleId)?.accent || '#1e1b18'}">${owner.shortName}</span>` : ''}
+                            <div class="cell-title">${cell.name}</div>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-between gap-0.5 mt-0.5">
+                            <span class="cell-price">${cell.price ? `${cell.price}т` : ''}</span>
+                            <div class="flex flex-wrap items-center gap-0.5">
+                                ${barygaHere ? `<span class="baryga-chip" title="Местный Барыга">БАР</span>` : ''}
+                                ${herePlayers.map(p => `<span class="token-chip" style="background:${ROLES.find(r=>r.id===p.roleId)?.accent || '#1e1b18'}" title="${p.name}">${p.token}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const d1 = gameState.lastDice[0] || 1;
+            const d2 = gameState.lastDice[1] || 1;
+            const diceSum = d1 + d2;
+            const isDoubleLast = d1 === d2;
+
+            let actionBannerHtml = '';
+            if (gameState.rescuePlayerId) {
+                const debtor = gameState.players.find(p => p.id === gameState.rescuePlayerId);
+                actionBannerHtml = `
+                    <div class="p-2.5 rounded-lg bg-red-50 border-2 border-red-800 space-y-2">
+                        <div class="text-xs font-extrabold text-red-950">
+                            ⚠ Кассовый разрыв: ${debtor?.name} (${formatMoney(debtor?.cash || 0)}). Заложите активы в карточках точек или выберите решение:
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="lendRescueMoney()" class="btn-archive px-3 py-1.5 text-xs bg-[#1f5c39] text-white">Принять антикризисную ссуду</button>
+                            <button type="button" onclick="eliminatePlayer()" class="btn-archive px-3 py-1.5 text-xs bg-[#8e1c1c] text-white">Списать / Выбыть из дела</button>
+                        </div>
+                    </div>
+                `;
+            } else if (gameState.pendingBarygaChoice && gameState.pendingBarygaChoice.playerId === active?.id) {
+                actionBannerHtml = `
+                    <div class="p-2.5 rounded-lg bg-amber-50 border-2 border-amber-700 space-y-2">
+                        <div class="text-xs font-extrabold text-amber-950">
+                            🕵️ Сделка с Местным Барыгой (клетка #${gameState.pendingBarygaChoice.cellId}${gameState.pendingBarygaChoice.isOrientirovka ? ' • по ориентировке' : ''}):
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="resolveBarygaChoice('law')" class="btn-archive px-2.5 py-1.5 text-xs bg-[#1f5c39] text-white">Законно (+50т)</button>
+                            <button type="button" onclick="resolveBarygaChoice('extort')" class="btn-archive px-2.5 py-1.5 text-xs bg-[#9a3412] text-white">Наезд и выжим (+110т, опечатать)</button>
+                            <button type="button" onclick="resolveBarygaChoice('plant')" class="btn-archive px-2.5 py-1.5 text-xs bg-[#8e1c1c] text-white">Подброс (+80т, «Крыса»)</button>
+                        </div>
+                    </div>
+                `;
+            } else if (gameState.pendingBuyCellId !== null) {
+                const buyCell = BOARD_CELLS.find(c => c.id === gameState.pendingBuyCellId);
+                let buyPrice = buyCell?.price || 100;
+                if (active?.roleId === 'kristina' && (buyCell?.sector === 'pink' || buyCell?.sector === 'orange' || buyCell?.sector === 'red')) {
+                    buyPrice = Math.round(buyPrice * 0.8);
+                }
+                actionBannerHtml = `
+                    <div class="p-2.5 rounded-lg bg-emerald-50 border-2 border-emerald-800 flex flex-wrap items-center justify-between gap-2">
+                        <div class="text-xs font-bold text-emerald-950">
+                            Свободная точка: <strong>${buyCell?.name}</strong> — выкуп за <strong>${formatMoney(buyPrice)}</strong>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="handleBuyOffer()" ${!canAct ? 'disabled' : ''} class="btn-archive px-3 py-1.5 text-xs bg-[#1f5c39] text-white">Купить</button>
+                            <button type="button" onclick="startAuctionForPendingCell()" ${!canAct ? 'disabled' : ''} class="btn-archive px-3 py-1.5 text-xs bg-[#b45309] text-white">Аукцион</button>
+                        </div>
+                    </div>
+                `;
+            } else if (gameState.pendingAuctionCellId !== null) {
+                const aucCell = BOARD_CELLS.find(c => c.id === gameState.pendingAuctionCellId);
+                const startBid = Math.max(30, Math.round((aucCell?.price || 100) * 0.5));
+                actionBannerHtml = `
+                    <div class="p-2.5 rounded-lg bg-amber-50 border-2 border-amber-700 space-y-2">
+                        <div class="text-xs font-extrabold text-amber-950">
+                            🔨 Аукцион за «${aucCell?.name}» (базовая ставка ${formatMoney(startBid)}):
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${gameState.players.filter(p => !p.eliminated).map(p => `
+                                <button type="button" onclick="resolveAuctionWinner('${p.id}', ${startBid})" ${!canAct ? 'disabled' : ''} class="btn-archive px-2.5 py-1 text-[11px] bg-[#1d3f66] text-white">
+                                    ${p.shortName} (${formatMoney(p.roleId === 'nika' ? startBid + 50 : startBid)})
+                                </button>
+                            `).join('')}
+                            <button type="button" onclick="skipAuctionCell()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2.5 py-1 text-[11px] bg-[#e8dcc5] text-[#1e1b18]">Без сделки</button>
+                        </div>
+                    </div>
+                `;
+            } else if (active && Array.isArray(active.pendingShadowChoices) && active.pendingShadowChoices.length > 0) {
+                actionBannerHtml = `
+                    <div class="p-2.5 rounded-lg bg-purple-50 border-2 border-purple-800 space-y-2">
+                        <div class="text-xs font-extrabold text-purple-950">Ника выбирает карту «Кабинета Яковлева»:</div>
+                        <div class="flex flex-wrap gap-2">
+                            ${active.pendingShadowChoices.map((ch, idx) => `
+                                <button type="button" onclick="chooseNikaCardOption(${idx})" class="btn-archive px-3 py-1.5 text-xs bg-[#6d28d9] text-white">
+                                    ${ch.title}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const showRybkinaNudge = active && active.roleId === 'rybkina' && !active.usedRybkinaNudgeThisTurn && !active.inUsb && !gameState.hasRolled;
+            const showOrientirovka = active && active.passedBarygaThisTurn && !gameState.pendingBarygaChoice;
+
+            const centerHubHtml = `
+                <div class="center-dossier-hub">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#b9aa91] pb-1.5">
+                        <div>
+                            <div class="mono text-[10px] font-bold uppercase tracking-wider text-[#5c5346]">ОМВД «Барвиха-Северное» • Дело № 77/40-ОМ</div>
+                            <div class="text-xs sm:text-sm font-extrabold ${isLocalTurnAllowed() ? 'text-[#1f5c39]' : 'text-[#8e1c1c]'}">
+                                ${lobbyMode === 'network'
+                                    ? (isLocalTurnAllowed()
+                                        ? `🟢 Ваш ход: ${active?.name} (${active?.roleName})`
+                                        : `⏳ Ожидание хода игрока «${active?.name}»`)
+                                    : `На связи: ${active?.name} (${active?.roleName})`}
+                            </div>
+                        </div>
+                        <div class="mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#e8dcc5] border border-[#6f6252]">
+                            Позиция: #${active?.pos ?? 0} (${BOARD_CELLS[active?.pos ?? 0]?.name || ''})
+                        </div>
+                    </div>
+
+                    <!-- Крупные тактические кубики в центре поля -->
+                    <div class="dice-stage my-auto flex flex-col items-center justify-center gap-2">
+                        <div class="flex items-center justify-center gap-4">
+                            <div class="die-cube">${renderDieSvgPips(d1)}</div>
+                            <div class="die-cube">${renderDieSvgPips(d2)}</div>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-center gap-2 text-xs font-extrabold">
+                            <span class="mono px-2.5 py-0.5 rounded bg-[#1e1b18] text-white">Сумма: ${diceSum}</span>
+                            ${isDoubleLast ? `<span class="mono px-2.5 py-0.5 rounded bg-[#8e1c1c] text-white">ДУБЛЬ ${d1}-${d2}</span>` : ''}
+                            ${active?.inUsb ? `<span class="mono px-2.5 py-0.5 rounded bg-red-800 text-white">В УСБ (ход ${active.usbTurns + 1}/3)</span>` : ''}
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                            <button type="button" onclick="handleRollDice()" ${!canAct || (gameState.hasRolled && !active?.inUsb && !(active?.skipNextTurn)) ? 'disabled' : ''} class="btn-archive px-4 py-2 text-xs sm:text-sm bg-[#8e1c1c] text-white">
+                                🎲 ${active?.skipNextTurn && !gameState.hasRolled ? 'Пропустить ход (взыскание)' : (active?.inUsb ? 'Бросок на выход из УСБ' : 'Бросить кубики')}
+                            </button>
+                            <button type="button" onclick="endTurn()" ${!canAct ? 'disabled' : ''} class="btn-archive px-3.5 py-2 text-xs sm:text-sm bg-[#1e1b18] text-white">
+                                Завершить ход ➔
+                            </button>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-center gap-1.5">
+                            ${showRybkinaNudge ? `
+                                <button type="button" onclick="nudgeRybkina(-1)" class="btn-archive px-2.5 py-1 text-[11px] bg-[#6d28d9] text-white">−1 кл. (Рыбкина)</button>
+                                <button type="button" onclick="nudgeRybkina(1)" class="btn-archive px-2.5 py-1 text-[11px] bg-[#6d28d9] text-white">+1 кл. (Рыбкина)</button>
+                            ` : ''}
+                            ${showOrientirovka ? `
+                                <button type="button" onclick="openOrientirovkaAction()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2.5 py-1 text-[11px] bg-[#b45309] text-white">🕵️ Ориентировка на Барыгу (30т)</button>
+                            ` : ''}
+                            ${active?.inUsb ? `
+                                <button type="button" onclick="payUsbBail()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2.5 py-1 text-[11px] bg-[#e8dcc5] text-[#1e1b18]">Выкуп из УСБ</button>
+                                ${active.jailFreeCards > 0 ? `<button type="button" onclick="useJailFreeCard()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2.5 py-1 text-[11px] bg-[#1f5c39] text-white">Карта УСБ (${active.jailFreeCards})</button>` : ''}
+                                ${active.shadowSchemes.some(s => s.usbShield && !s.usedActive) ? `<button type="button" onclick="useScheme03ForUsb()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2.5 py-1 text-[11px] bg-[#1d3f66] text-white">Схема № 03</button>` : ''}
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    ${actionBannerHtml}
+                </div>
+            `;
+
+            gridEl.innerHTML = cellsHtml + centerHubHtml;
+        }
+
+        function renderPlayersPanel() {
+            const panel = document.getElementById('players-panel');
+            if (!panel || !gameState) return;
+
+            panel.innerHTML = gameState.players.map((p, idx) => {
+                const isTurn = idx === gameState.turnIndex;
+                const roleObj = ROLES.find(r => r.id === p.roleId) || ROLES[0];
+                const depts = countOwnedByType(p.id, 'department');
+                const specs = countOwnedByType(p.id, 'specops');
+                return `
+                    <div class="p-2.5 rounded-lg border ${isTurn ? 'border-2 border-[#8e1c1c] bg-[#fffdf8]' : 'border-[#9c8c74] bg-[#fbf7ef]'} ${p.eliminated ? 'opacity-50' : ''}">
+                        <div class="flex items-center justify-between gap-1.5 mb-1">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="token-chip flex-shrink-0" style="background:${roleObj.accent}">${p.token}</span>
+                                <div class="truncate">
+                                    <div class="text-xs font-extrabold truncate">${p.name} ${isTurn ? '• ХОД' : ''}</div>
+                                    <div class="text-[10.5px] text-[#5c5346] truncate">${p.roleName} • кл. #${p.pos}</div>
+                                </div>
+                            </div>
+                            <div class="text-right flex-shrink-0">
+                                <div class="mono text-xs font-extrabold ${p.cash < 0 ? 'text-red-800' : 'text-[#1f5c39]'}">${formatMoney(p.cash)}</div>
+                                <div class="mono text-[10px] text-[#5c5346]">Акт: ${formatMoney(calculateNetWorth(p))}</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-1 text-[10px] font-bold">
+                            <span class="px-1.5 py-0.5 rounded bg-[#e8dcc5]">Отд: ${depts}</span>
+                            <span class="px-1.5 py-0.5 rounded bg-[#e8dcc5]">Спец: ${specs}</span>
+                            <span class="px-1.5 py-0.5 rounded bg-[#e8dcc5]">Саун: ${p.saunas}</span>
+                            <span class="px-1.5 py-0.5 rounded bg-[#e8dcc5]">Тень: ${p.shadowTier > 0 ? `${p.shadowTier} ур.` : '—'}</span>
+                            ${p.inUsb ? `<span class="px-1.5 py-0.5 rounded bg-red-800 text-white">УСБ</span>` : ''}
+                            ${p.tokens.ratOnMe ? `<span class="px-1.5 py-0.5 rounded bg-amber-800 text-white">Крыса</span>` : ''}
+                            ${p.tokens.hookedByUsb ? `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-white">На крючке</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRightAssetsPanel() {
+            const container = document.getElementById('right-assets-panel');
+            if (!container || !gameState) return;
+
+            const active = gameState.players[gameState.turnIndex];
+            if (!active) return;
+
+            const canAct = isLocalTurnAllowed() && !gameState.rescuePlayerId;
+            const ownedCells = getPlayerOwnedCells(active.id);
+            const depts = countOwnedByType(active.id, 'department');
+            const specs = countOwnedByType(active.id, 'specops');
+            const matrix = TOKEN_MATRIX[active.roleId] || TOKEN_MATRIX.nika;
+            const maxSaunas = active.roleId === 'kristina' ? 4 : 3;
+            const freeDeptForRedeem = BOARD_CELLS.find(c => c.type === 'department' && !gameState.cellOwners[c.id]);
+            const otherPlayers = gameState.players.filter(p => !p.eliminated && p.id !== active.id);
+            const tierInfo = SHADOW_TIERS[active.shadowTier] || SHADOW_TIERS[0];
+
+            const ownedHtml = ownedCells.length === 0
+                ? `<div class="text-[11px] text-[#5c5346]">Пока нет точек в собственности.</div>`
+                : ownedCells.map(cell => {
+                    const stars = gameState.cellStars[cell.id] || 0;
+                    const upg = getStarUpgradeCostAndCheck(active, cell);
+                    const secColor = cell.sector && SECTORS[cell.sector] ? SECTORS[cell.sector].color : '#4b5563';
+                    return `
+                        <div class="p-2 rounded bg-[#fbf7ef] border border-[#b9aa91] space-y-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <button type="button" onclick="openCellModal(${cell.id})" class="text-left text-xs font-extrabold hover:underline truncate">
+                                    <span class="inline-block w-2.5 h-2.5 rounded-full mr-1 align-middle" style="background:${secColor}"></span>
+                                    #${cell.id} ${cell.name}
+                                </button>
+                                <span class="mono text-[10px] font-bold text-[#92400e]">${stars > 0 ? '★'.repeat(stars) : '0★'}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1">
+                                ${cell.type === 'property' ? `
+                                    <button type="button" onclick="upgradeStar(${cell.id})" ${!canAct || !upg.canUpgrade ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#1f5c39] text-white">
+                                        +★ (${upg.canUpgrade ? `${upg.cost}т` : 'макс'})
+                                    </button>
+                                ` : ''}
+                                ${cell.type === 'department' && active.saunas < maxSaunas ? `
+                                    <button type="button" onclick="exchangeDeptForSaunas(${cell.id}, 1, 100)" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#b45309] text-white">
+                                        ♨ 1 сауна (+100т)
+                                    </button>
+                                    <button type="button" onclick="exchangeDeptForSaunas(${cell.id}, 2, 0)" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#9a3412] text-white">
+                                        ♨ +2 сауны
+                                    </button>
+                                ` : ''}
+                                <button type="button" onclick="toggleMortgageCell(${cell.id})" class="btn-archive px-2 py-0.5 text-[10px] bg-[#e8dcc5] text-[#1e1b18]">
+                                    ${gameState.cellMortgaged[cell.id] ? 'Выкупить' : 'Заложить'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            const availableSchemes = gameState.shadowDeck
+                .filter(sc => sc.tier <= active.shadowTier && sc.cost <= tierInfo.maxCardCost)
+                .slice(0, 6);
+
+            container.innerHTML = `
+                <!-- Активы игрока -->
+                <div class="space-y-1.5">
+                    <div class="text-xs font-extrabold uppercase tracking-wider text-[#3c3329]">Активы (${active.shortName})</div>
+                    <div class="space-y-1.5 max-h-44 overflow-y-auto pr-0.5">${ownedHtml}</div>
+                </div>
+
+                <!-- Сауны, Отделы и Спецслужбы -->
+                <div class="pt-2 border-t border-[#c7b89e] space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-[#3c3329]">Сауны и контур служб</span>
+                        <span class="mono text-[11px] font-bold">Саун: ${active.saunas}/${maxSaunas}</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1">
+                        ${active.saunas < maxSaunas ? `<button type="button" onclick="buyExtraSauna()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#b45309] text-white">Добор сауны (50т)</button>` : ''}
+                        ${active.saunas >= 3 && freeDeptForRedeem ? `<button type="button" onclick="redeemDeptFromSaunas()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#1d3f66] text-white">Выкуп отдела (3 сауны + 50т)</button>` : ''}
+                        ${active.saunas >= 1 && !active.usedSauna1BonusThisRound ? `
+                            <button type="button" onclick="useSauna1Bonus('move_baryga_1')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#e8dcc5] text-[#1e1b18]">Сауна: Барыга +1</button>
+                            ${active.tokens.ratOnMe ? `<button type="button" onclick="useSauna1Bonus('clear_rat')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#1f5c39] text-white">Сауна: снять «Крысу»</button>` : ''}
+                        ` : ''}
+                        ${active.roleId === 'rybkina' && depts >= 2 && !active.usedRybkinaDeptJumpThisRound ? `<button type="button" onclick="useRybkinaDeptJump()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#6d28d9] text-white">Рыбкина: между Отделами (0₽)</button>` : ''}
+                        ${active.roleId === 'nika' && !active.usedNikaSwapOnce ? `<button type="button" onclick="useNikaSwapOnce()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#374151] text-white">Ника: обмен карты (1/игра)</button>` : ''}
+                        ${active.roleId === 'yakovlev' && !active.usedYakovlevCabinetRerollThisRound ? `<button type="button" onclick="useYakovlevCabinetReroll()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#8e1c1c] text-white">Яковлев: перетянуть Кабинет</button>` : ''}
+                        ${depts >= 2 && active.tokens.ratOnMe && !active.usedDeptRatClearThisRound ? `<button type="button" onclick="useDeptRatClear()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#1f5c39] text-white">2 Отдела: снять «Крысу»</button>` : ''}
+                        ${specs >= 1 && !active.usedSpecOpsActionThisRound ? `<button type="button" onclick="useSpecOpsAction('move_baryga_1')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#1d3f66] text-white">Спецслужба: Барыга +1</button>` : ''}
+                        ${specs >= 1 && !active.usedSpecOpsShadowStealThisRound && otherPlayers.some(p => p.tokens.gastarbaitery > 0) ? `<button type="button" onclick="useSpecOpsAction('steal_gastar')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-1 text-[10.5px] bg-[#1d3f66] text-white">Спецслужба: переман гастарб.</button>` : ''}
+                    </div>
+                    ${depts >= 3 && otherPlayers.length > 0 ? `
+                        <div class="flex flex-wrap gap-1 pt-0.5">
+                            ${otherPlayers.map(op => `<button type="button" onclick="useDeptBlockLink('${op.id}')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#8e1c1c] text-white">Блок связки: ${op.shortName}</button>`).join('')}
+                        </div>
+                    ` : ''}
+                    ${specs >= 1 && !active.usedSpecOpsActionThisRound && otherPlayers.length > 0 ? `
+                        <div class="flex flex-wrap gap-1 pt-0.5">
+                            ${otherPlayers.map(op => `<button type="button" onclick="useSpecOpsAction('plant_rat', '${op.id}')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#7c2d12] text-white">«Крыса» → ${op.shortName}</button>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Теневой бизнес -->
+                <div class="pt-2 border-t border-[#c7b89e] space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-[#3c3329]">Теневой бизнес</span>
+                        <span class="mono text-[10.5px] font-bold">${tierInfo.name}</span>
+                    </div>
+                    <div class="text-[11px] text-[#4a4035]">
+                        Схем: <strong>${active.shadowSchemes.length}/${tierInfo.maxCards}</strong> • Доход/круг: <strong>+${active.shadowSchemes.reduce((s, x) => s + (x.income || 0), 0)}т</strong>
+                    </div>
+                    <div class="flex flex-wrap gap-1">
+                        ${[1, 2, 3, 4].filter(t => t > active.shadowTier).map(t => {
+                            const c = t === 1 ? 100 : (t === 2 ? 200 : (t === 3 ? (active.roleId === 'kristina' ? 450 : 350) : 500));
+                            return `<button type="button" onclick="unlockShadowTierDirect(${t})" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#3c3329] text-white">Вход ${t} ур. (${c}т)</button>`;
+                        }).join('')}
+                    </div>
+                    ${active.shadowSchemes.length > 0 ? `
+                        <div class="space-y-1">
+                            ${active.shadowSchemes.map(sc => `
+                                <div class="flex items-center justify-between gap-1 px-2 py-1 rounded bg-[#f3ead8] border border-[#b9aa91] text-[10.5px]">
+                                    <span class="font-bold truncate">${sc.code} ${sc.name} ${sc.income ? `(+${sc.income}т)` : ''}</span>
+                                    ${!sc.usedActive && (sc.instantCash || sc.customMoveSteps) ? `
+                                        <button type="button" onclick="activateOwnedShadowCard('${sc.uid}')" ${!canAct ? 'disabled' : ''} class="btn-archive px-1.5 py-0.5 text-[9.5px] bg-[#1f5c39] text-white">Применить</button>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    ${active.shadowTier > 0 && availableSchemes.length > 0 ? `
+                        <div class="space-y-1 pt-0.5">
+                            <div class="text-[10px] font-bold text-[#5c5346]">Доступные схемы в колоде:</div>
+                            ${availableSchemes.map(sc => `
+                                <div class="flex items-center justify-between gap-1 px-2 py-1 rounded bg-[#fbf7ef] border border-[#c7b89e] text-[10.5px]">
+                                    <span class="truncate"><strong>${sc.code}</strong> ${sc.name} (${sc.cost}т)</span>
+                                    <button type="button" onclick="buyShadowSchemeCard('${sc.uid}')" ${!canAct || active.shadowSchemes.length >= tierInfo.maxCards ? 'disabled' : ''} class="btn-archive px-1.5 py-0.5 text-[9.5px] bg-[#1d3f66] text-white">Взять</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Жетоны, Кафешки и Связки -->
+                <div class="pt-2 border-t border-[#c7b89e] space-y-1.5">
+                    <div class="text-xs font-extrabold uppercase tracking-wider text-[#3c3329]">Жетоны и активы</div>
+                    <div class="text-[11px] flex flex-wrap gap-1.5">
+                        <span>Шаурма: <strong>${active.tokens.shaurma}</strong></span>
+                        <span>Кафешек: <strong>${active.cafeshkaCount}</strong></span>
+                        <span>Гастарб.: <strong>${active.tokens.gastarbaitery}/3</strong></span>
+                        <span>Участк.: <strong>${active.tokens.uchastkovy}</strong></span>
+                        <span>Шлюха: <strong>${active.tokens.prostitute}</strong></span>
+                    </div>
+                    <div class="flex flex-wrap gap-1">
+                        <button type="button" onclick="buyResourceToken('shaurma')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#e8dcc5] text-[#1e1b18]">+Шаурма (${matrix.shaurma}т)</button>
+                        <button type="button" onclick="buyResourceToken('gastarbaitery')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#e8dcc5] text-[#1e1b18]">+Гастарб. (${matrix.gastarbaitery}т)</button>
+                        <button type="button" onclick="buyResourceToken('uchastkovy')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#e8dcc5] text-[#1e1b18]">+Участк. (${matrix.uchastkovy}т)</button>
+                        <button type="button" onclick="buyResourceToken('prostitute')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#e8dcc5] text-[#1e1b18]">+Шлюха (${matrix.prostitute}т)</button>
+                        ${!active.hasHostel ? `<button type="button" onclick="buyResourceToken('hostel')" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#e8dcc5] text-[#1e1b18]">+Хостел (${matrix.hostel}т)</button>` : ''}
+                        ${active.tokens.uchastkovy > 0 ? `<button type="button" onclick="activateUchastkovyToken()" ${!canAct ? 'disabled' : ''} class="btn-archive px-2 py-0.5 text-[10px] bg-[#1f5c39] text-white">Задейств. участкового</button>` : ''}
+                    </div>
+                    <div class="text-[10.5px] text-[#4a4035]">
+                        <strong>Связки:</strong> ${active.activeLinks.length > 0 ? active.activeLinks.join(', ') : 'пока нет активных'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGameLog() {
+            const logEl = document.getElementById('game-log');
+            if (!logEl || !gameState) return;
+            logEl.innerHTML = gameState.logs.map(entry => `
+                <div class="p-1.5 rounded bg-[#fbf7ef] border border-[#d6c9b2] text-[#2b241d]">${entry}</div>
+            `).join('');
+        }
+
+        function renderAll() {
+            if (!gameState) return;
+            const roundEl = document.getElementById('round-indicator');
+            const barygaEl = document.getElementById('baryga-status-badge');
+            const netBadge = document.getElementById('game-net-badge');
+            const rosterStrip = document.getElementById('game-room-roster-strip');
+            const seatSwitcher = document.getElementById('game-seat-switcher');
+
+            if (roundEl) roundEl.textContent = `Круг ${gameState.round}`;
+            if (barygaEl) barygaEl.textContent = `Барыга: кл. #${gameState.barygaPos}`;
+
+            if (netBadge) {
+                if (lobbyMode === 'network' && networkRoomCode) {
+                    netBadge.classList.remove('hidden');
+                    netBadge.textContent = `🌐 ${networkRoomCode}`;
+                } else {
+                    netBadge.classList.add('hidden');
+                }
+            }
+
+            if (rosterStrip) {
+                if (lobbyMode === 'network' && roomMembers.length > 0) {
+                    rosterStrip.classList.remove('hidden');
+                    rosterStrip.innerHTML = roomMembers.map((m, i) => {
+                        const slotIdx = lobbySlots.findIndex(s => s.guestId === m.id || s.name === m.name);
+                        const effectiveSlot = slotIdx !== -1 ? slotIdx : i;
+                        const isTurn = gameState.players[gameState.turnIndex]?.seatIndex === effectiveSlot || gameState.players[gameState.turnIndex]?.name === m.name;
+                        const isMe = m.id === localGuestId || effectiveSlot === localNetworkSeat;
+                        return `<span class="px-2 py-0.5 rounded-full border font-bold ${isTurn ? 'bg-amber-300 text-stone-950 border-amber-700' : isMe ? 'bg-sky-100 text-sky-950 border-sky-700' : 'bg-[#fbf7ef] text-stone-800 border-stone-500'}">${m.name}${isMe ? ' (Вы)' : ''}${isTurn ? ' • ХОД' : ''}</span>`;
+                    }).join('');
+                } else {
+                    rosterStrip.classList.add('hidden');
+                    rosterStrip.innerHTML = '';
+                }
+            }
+
+            if (seatSwitcher) {
+                if (lobbyMode === 'network' && gameState.players.length > 0) {
+                    seatSwitcher.classList.remove('hidden');
+                    seatSwitcher.innerHTML = gameState.players.map((p, idx) => {
+                        const sel = idx === localNetworkSeat ? 'selected' : '';
+                        return `<option value="${idx}" ${sel}>Ваш слот: #${idx + 1} ${p.name}</option>`;
+                    }).join('');
+                } else {
+                    seatSwitcher.classList.add('hidden');
+                    seatSwitcher.innerHTML = '';
+                }
+            }
+
+            renderPlayersPanel();
+            renderBoard();
+            renderRightAssetsPanel();
+            renderGameLog();
+        }
+
+        window.onload = function () {
+            renderLobby();
+            renderRoomMembers();
+            const params = new URLSearchParams(window.location.search);
+            const roomParam = (params.get('room') || '').trim().toUpperCase();
+            if (roomParam) {
+                setLobbyMode('network');
+                const codeInput = document.getElementById('net-room-code-input');
+                if (codeInput) codeInput.value = roomParam;
+                initNetworkChannel(roomParam);
+                updateInviteLinkBox(roomParam);
+            }
+        };
+    </script>
+</body>
+</html>
